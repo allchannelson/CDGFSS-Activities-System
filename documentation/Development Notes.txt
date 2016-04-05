@@ -1,0 +1,27 @@
+Authenticate
+- role (Staff, Vice Principal, Principal)
+  - actions allowed (review, first approval, second approval, enter new activity)
+
+Allow actions
+- Separate pages?  IFrames?  Hmm, not really sure.  Probably needs to be plugin like and modular.
+** Short term.  Staff, VP, and P pages.  Probably just set them up as custom pages for now.  No management options available.
+
+First step.  Create an activity, insert students involved.
+- Activity + Student table.  Activity ID + Student ID
+- Activity ID: activity details
+- Student ID: student details
+
+Student + Activity.  Historical records?
+? What happens when students change grades and class?  Are old records accurate?
+  - One solution make class and class number relational... but this will complicate the activity record a LOT more, since it will now tie in 3 tables of data instead of two.
+  
+DB
+? What to do with concurrency?  Someone changes something while someone uses the data that is being changed?
+ - Make it so things being changed are not used in keys.
+   - Student Primary Key is StudentNo + Year
+   
+? How long are activities recorded for reference?
+? When are student numbers recycled?  - solved.  Use Student No + Year as concatenated primary key, ensuring uniqueness even if they are reused.
+
+
+SELECT Substring(`class`, 2, 1) FROM `student`
