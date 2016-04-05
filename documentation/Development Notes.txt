@@ -22,6 +22,3 @@ DB
    
 ? How long are activities recorded for reference?
 ? When are student numbers recycled?  - solved.  Use Student No + Year as concatenated primary key, ensuring uniqueness even if they are reused.
-
-
-SELECT Substring(`class`, 2, 1) FROM `student`

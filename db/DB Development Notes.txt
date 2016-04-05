@@ -1,0 +1,15 @@
+**
+Splitting data from activity.student to activity_prototype.student and activity_prototype.student_yearly_info
+SELECT Substring(`class`, 2, 1) FROM `student`...
+INSERT into activity_prototype.student ...
+INSERT into activity_prototype.student_yearly_info () VALUES (LAST_INSERT_ID() ...)
+
+NOTE:  Not tested yet.  Will confirm with testing.
+
+** Inserting new records:
+INSERT into activity_prototype.student ...
+Then 
+INSERT into activity_prototype.student_yearly_info () VALUES (LAST_INSERT_ID() ...)
+
+
+NOTE:  Not tested yet.  Will confirm with testing.
