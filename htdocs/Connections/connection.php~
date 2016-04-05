@@ -1,0 +1,6 @@
+<?php
+echo "hello";
+$connection = mysql_connect('localhost', 'admin', '451898') or 
+	trigger_error(mysql_error(), E_USER_ERROR);
+mysql_set_charset('utf8', $connection);
+?>

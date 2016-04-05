@@ -1,0 +1,38 @@
+<?php require_once('Connections/connection.php'); ?>
+<?php require_once('Connections/function.php'); ?>
+<html>
+<meta charset="UTF-8">
+<head>
+<link rel="stylesheet" href="/result.css">
+</head>
+<body>
+123
+<?php
+	$db_selected = mysql_select_db('activity', $connection);
+	if (!result) {
+	  echo 'failed: ', mysql_error();
+	  exit;
+	}
+	$query = sprintf("select * from student");
+	$result = mysql_query($query);
+	if (!result) {
+		echo 'failed: ', mysql_error();
+		exit;
+	}
+	echo "<table>";
+	while ($row = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		echo "<tr>";
+		foreach ($row as $output)
+		{
+			echo "<td>";			
+			echo $output;
+			echo "</td>"; 
+		}
+		echo "</tr>\n";
+	}
+	echo "</table>";
+?>
+</body>
+</html>
+
+

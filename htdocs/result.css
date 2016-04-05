@@ -1,0 +1,19 @@
+body {
+	
+}
+
+table {
+	
+	border-spacing: 0px;
+    	border-collapse: separate;
+}
+table, td {
+	background-color: white;
+	border: 1px green solid;
+	font-size: 90%;
+}
+
+td {
+	padding: 2px;
+	
+}
