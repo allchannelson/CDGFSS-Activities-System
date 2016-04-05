@@ -21,4 +21,5 @@ DB
    - Student Primary Key is StudentNo + Year
    
 ? How long are activities recorded for reference?
-? When are student numbers recycled?  - solved.  Use Student No + Year as concatenated primary key, ensuring uniqueness even if they are reused.
+? When are student numbers recycled?  - solved.  Use Foreign Key ID + Year as concatenated primary key, ensuring uniqueness even if they are reused.
+ - refer to `student` and `student_yearly_info` structure in \db
