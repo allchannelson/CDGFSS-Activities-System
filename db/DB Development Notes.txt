@@ -1,15 +1,75 @@
-**
-Splitting data from activity.student to activity_prototype.student and activity_prototype.student_yearly_info
+--
+-- Splitting data from activity.student to activity_prototype.student and activity_prototype.student_yearly_info
 SELECT Substring(`class`, 2, 1) FROM `student`...
 INSERT into activity_prototype.student ...
 INSERT into activity_prototype.student_yearly_info () VALUES (LAST_INSERT_ID() ...)
 
-NOTE:  Not tested yet.  Will confirm with testing.
+/*  Notes
 
-** Inserting new records:
+CDG070113
+S6A
+22
+LI CHUN
+李臻
+M
+L
+
+SELECT `student_index`, APS.`name_chinese`, APS.`name_english`
+  FROM `activity_prototype`.`student` as `APS`, `activity`.`student` as `AS`
+ WHERE `APS`.`name_chinese` = `AS`.`chi_name`
+   AND `APS`.`name_english` = `AS`.`name`
+   
+-- activity
+student_index  -- from student.student_index
+student_year -- Substring(`class`, 2, 1)
+class -- Substring(`class`, 3, 1)
+class_number -- student.class_num
+house -- student.house
+
+INSERT INTO `activity_prototype`.`student_yearly_info`
+SELECT (SELECT `student_index`
+          FROM `activity_prototype`.`student` as `APS`, `activity`.`student` as `AS`
+         WHERE `APS`.`name_chinese` = `AS`.`chi_name`
+           AND `APS`.`name_english` = `AS`.`name`),
+       Substring(`class`, 2, 1), Substring(`class`, 3, 1), `class_num`, `house`
+  FROM `activity`.`student`
+
+    SELECT p.`student_index`, Substring(`class`, 2, 1), Substring(`class`, 3, 1), `class_num`, `house`
+      FROM `activity_prototype`.`student` as p
+INNER JOIN `activity`.`student` as a
+        ON p.`name_chinese` = a.`chi_name`
+       AND p.`name_english` = a.`name`
+
+select LessonCode from lesson l
+inner join subject s on s.subjectCode = l.SubjectCode
+where s.teacherCode = x
+
+*/
+
+-- http://stackoverflow.com/questions/4241621/mysql-insert-into-table-data-from-another-table
+INSERT INTO `activity_prototype`.`student_yearly_info` (campaign_id, mobile, vote, vote_date)  
+SELECT campaign_id, from_number, received_msg, date_received
+  FROM `received_txts`
+ WHERE `campaign_id` = '8'
+
+-- Confirmed worknig query for populating student_yearly_info after student has been populated:
+-- INNER JOIN ON both Chinese and English name.
+START TRANSACTION;
+INSERT INTO `activity_prototype`.`student_yearly_info` (`student_index`, `student_year`, `class`, `class_number`, house)
+     SELECT p.`student_index`, Substring(`class`, 2, 1), Substring(`class`, 3, 1), `class_num`, `house`
+       FROM `activity_prototype`.`student` as p
+ INNER JOIN `activity`.`student` as a
+         ON p.`name_chinese` = a.`chi_name`
+        AND p.`name_english` = a.`name`;
+ROLLBACK;
+--
+-- COMPLETED 06042016
+
+
+        
+-- Inserting new records:
 INSERT into activity_prototype.student ...
 Then 
 INSERT into activity_prototype.student_yearly_info () VALUES (LAST_INSERT_ID() ...)
 
-
-NOTE:  Not tested yet.  Will confirm with testing.
+-- NOTE:  Not tested yet.  Will confirm with testing.

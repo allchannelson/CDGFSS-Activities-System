@@ -23,3 +23,5 @@ DB
 ? How long are activities recorded for reference?
 ? When are student numbers recycled?  - solved.  Use Foreign Key ID + Year as concatenated primary key, ensuring uniqueness even if they are reused.
  - refer to `student` and `student_yearly_info` structure in \db
+ 
+06042016 - Possible solution.  Create table views, but still will have problems due to missing "Active" field.
