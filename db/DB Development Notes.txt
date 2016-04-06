@@ -55,17 +55,41 @@ SELECT campaign_id, from_number, received_msg, date_received
 -- Confirmed worknig query for populating student_yearly_info after student has been populated:
 -- INNER JOIN ON both Chinese and English name.
 START TRANSACTION;
-INSERT INTO `activity_prototype`.`student_yearly_info` (`student_index`, `student_year`, `class`, `class_number`, house)
-     SELECT p.`student_index`, Substring(`class`, 2, 1), Substring(`class`, 3, 1), `class_num`, `house`
+INSERT INTO `activity_prototype`.`student_yearly_info` (`student_index`, `enrollment_year`, `form`, `class`, `class_number`, `house`)
+     SELECT p.`student_index`, 2015, Substring(a.`class`, 2, 1), Substring(a.`class`, 3, 1), a.`class_num`, a.`house`
        FROM `activity_prototype`.`student` as p
  INNER JOIN `activity`.`student` as a
-         ON p.`name_chinese` = a.`chi_name`
-        AND p.`name_english` = a.`name`;
+         ON p.`student_number` = a.`reg_no`
 ROLLBACK;
 --
 -- COMPLETED 06042016
 
+-- update... expanded student_yearly_info with enrollment_year, discovered there are multiple students with duplicate name + english name, unable to easily establish uniqueness
 
+SELECT  m.*
+FROM    (
+ SELECT concat_ws(' ', chi_name, name) AS text FROM activity.student GROUP BY
+        concat_ws(' ', chi_name, name)
+ HAVING COUNT(*) > 1) q
+JOIN    activity.student m
+ON      concat_ws(' ', m.chi_name, m.name) = q.text
+ORDER BY name;
+
+/*
+reg_no	class	class_num	name	chi_name	gender	house
+CDG110002	S4B	12	CHAN CHUN YIN	陳俊諺	M	L
+CDG120137	S3B	21	CHAN CHUN YIN	陳俊諺	M	K
+CDG120136	S3D	1	CHAN SZE MAN	陳思敏	F	K
+CDG090012	S6E	3	CHAN SZE MAN	陳思敏	F	M
+CDG090022	S6D	2	CHAN YEE MAN	陳綺雯	F	J
+CDG120009	S3A	2	CHAN YEE MAN	陳綺雯	F	J
+CDG090112	S6D	12	NG HOI YAN	吳凱欣	F	L
+CDG100112	S5A	13	NG HOI YAN	吳凱欣	F	J
+*/
+
+-- should NOT be an issue if the records are inserted and then LAST_INSERT_ID() is used... but still need to setup a system to handle duplicate names
+
+-- Updated above query to use student_number match instead
         
 -- Inserting new records:
 INSERT into activity_prototype.student ...
