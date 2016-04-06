@@ -1,0 +1,3 @@
+Created new DB user:
+select_only
+xBX8swTSrGawmB5r
