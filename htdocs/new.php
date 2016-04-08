@@ -10,6 +10,7 @@ Date: <input type="text" length=40></input><br>
 Teacher: <input type="text" length=40></input><br>
 <hr>
 <u>Students</u><br>
+<form action="submit.php" method="post">
 <?php
 $mysqli = new mysqli("localhost", "select_only", "xBX8swTSrGawmB5r", "activity_prototype");
 
@@ -38,7 +39,7 @@ $query = "SELECT * FROM student LIMIT 10";
 /* fetch associative array */
 if ($result = $mysqli->query($query)) {
     while ($row = $result->fetch_assoc()) {
-      echo("<input type='checkbox'>");
+      echo(sprintf("<input type='checkbox' name='checkboxArray[]' value='%s | %s'>", $row['student_number'], $row['name_chinese']));
       // $row['student_index'], $row['student_number'], $row['name_chinese'], $row['name_english'], $row['gender'], $row['active']
       //e(sprintf("Index: %d  Student ID: %s  %s  %s  %s  Active: %d",
       e(sprintf("Index: %d  Student ID: %s  %s %s",
@@ -62,5 +63,7 @@ if ($result = $mysqli->query($query)) {
 /* close connection */
 $mysqli->close();
 ?>
+<input type="submit" value="Submit">
+</form>
 </body>
 </html>
