@@ -5,7 +5,7 @@
 <body>
 <hr>
 <u>Activity</u><br>
-Activity Name: <input type="text" length=40></input><br>
+Activity ENG Name: <input type="text" name="activity_name_english" length=100></input><br>
 Date: <input type="text" length=40></input><br>
 Teacher: <input type="text" length=40></input><br>
 <hr>
@@ -38,25 +38,26 @@ $query = "SELECT * FROM student LIMIT 10";
 
 /* fetch associative array */
 if ($result = $mysqli->query($query)) {
-    while ($row = $result->fetch_assoc()) {
-      echo(sprintf("<input type='checkbox' name='checkboxArray[]' value='%s | %s'>", $row['student_number'], $row['name_chinese']));
-      // $row['student_index'], $row['student_number'], $row['name_chinese'], $row['name_english'], $row['gender'], $row['active']
-      //e(sprintf("Index: %d  Student ID: %s  %s  %s  %s  Active: %d",
-      e(sprintf("Index: %d  Student ID: %s  %s %s",
-        $row['student_index'], 
-        $row['student_number'], 
-        $row['name_chinese'], 
-        $row['name_english'],
-        $row['gender'], 
-        $row['active'])
-       );
-      echo("</input><br>");
+  
+  while ($row = $result->fetch_assoc()) {
+    echo(sprintf("<input type='checkbox' name='checkboxArray[]' value='%s | %s'>", $row['student_number'], $row['name_chinese']));
+    // $row['student_index'], $row['student_number'], $row['name_chinese'], $row['name_english'], $row['gender'], $row['active']
+    //e(sprintf("Index: %d  Student ID: %s  %s  %s  %s  Active: %d",
+    e(sprintf("Index: %d  Student ID: %s  %s %s",
+      $row['student_index'], 
+      $row['student_number'], 
+      $row['name_chinese'], 
+      $row['name_english'],
+      $row['gender'], 
+      $row['active'])
+     );
+    echo("</input><br>");
 
-    }
-    echo("</checkbox>");
+  }
+  echo("</checkbox>");
 
-    /* free result set */
-    $result->free();
+  /* free result set */
+  $result->free();
 }
 //
 

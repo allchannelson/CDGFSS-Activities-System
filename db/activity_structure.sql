@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 11, 2016 at 11:56 AM
+-- Generation Time: Apr 11, 2016 at 11:55 AM
 -- Server version: 10.1.9-MariaDB
 -- PHP Version: 5.6.15
 
@@ -23,16 +23,13 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `student_yearly_info`
+-- Table structure for table `activity`
 --
 
-CREATE TABLE `student_yearly_info` (
-  `student_index` int(10) UNSIGNED NOT NULL,
-  `enrollment_year` int(4) UNSIGNED NOT NULL,
-  `form` int(4) NOT NULL,
-  `class` char(1) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `class_number` int(2) DEFAULT NULL,
-  `house` char(1) COLLATE utf8_unicode_ci DEFAULT NULL
+CREATE TABLE `activity` (
+  `activity_index` int(10) UNSIGNED NOT NULL,
+  `activity_name_chinese` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `activity_name_english` varchar(100) COLLATE utf8_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
@@ -40,22 +37,20 @@ CREATE TABLE `student_yearly_info` (
 --
 
 --
--- Indexes for table `student_yearly_info`
+-- Indexes for table `activity`
 --
-ALTER TABLE `student_yearly_info`
-  ADD PRIMARY KEY (`student_index`,`enrollment_year`),
-  ADD KEY `student_index` (`student_index`);
+ALTER TABLE `activity`
+  ADD PRIMARY KEY (`activity_index`);
 
 --
--- Constraints for dumped tables
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- Constraints for table `student_yearly_info`
+-- AUTO_INCREMENT for table `activity`
 --
-ALTER TABLE `student_yearly_info`
-  ADD CONSTRAINT `ForeignKeyOnStudent_Index` FOREIGN KEY (`student_index`) REFERENCES `student` (`student_index`);
-
+ALTER TABLE `activity`
+  MODIFY `activity_index` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
