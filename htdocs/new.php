@@ -4,13 +4,13 @@
 </head>
 <body>
 <hr>
+<form action="submit.php" method="post">
 <u>Activity</u><br>
 Activity ENG Name: <input type="text" name="activity_name_english" length=100></input><br>
 Date: <input type="text" length=40></input><br>
 Teacher: <input type="text" length=40></input><br>
 <hr>
 <u>Students</u><br>
-<form action="submit.php" method="post">
 <?php
 $mysqli = new mysqli("localhost", "select_only", "xBX8swTSrGawmB5r", "activity_prototype");
 
