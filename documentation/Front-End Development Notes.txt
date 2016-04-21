@@ -1,3 +1,8 @@
 Created new DB user:
 select_only
 xBX8swTSrGawmB5r
+
+
+TO DO:
+Change from mysqli to PDO
+Upgrade to PHP 7
