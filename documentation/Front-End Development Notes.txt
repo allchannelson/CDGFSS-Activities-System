@@ -6,3 +6,20 @@ xBX8swTSrGawmB5r
 TO DO:
 Change from mysqli to PDO
 Upgrade to PHP 7
+
+
+Student Selection:
+DHTML search box: Name, Form-Class (6A), Form-Class-Number (6A11)
+
+Query for activity and students:
+
+select act.name_chinese as 'Activity CHI', act.name_english 'Activity ENG', act.date, act.teacher, s.name_chinese, s.name_english, CONCAT(syi.form, syi.class, syi.class_number) AS 'Class'
+from `activity` act
+INNER JOIN `activity_student` acts
+  ON act.activity_index = acts.activity_index
+inner join `student_yearly_info` syi
+  ON acts.student_index = syi.student_index 
+  AND acts.student_enrollment_year = syi.enrollment_year
+inner join `student` s
+  ON syi.`student_index` = s.`student_index`
+ORDER BY act.name_english;

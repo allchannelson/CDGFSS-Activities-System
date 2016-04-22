@@ -25,6 +25,7 @@ Activity ENG Name: <input type="text" name="activity[name_english]" length=100><
 Activity CHI Name: <input type="text" name="activity[name_chinese]" length=100></input><br>
 Date: <input type="text" name="activity[date]" length=40></input><br>
 Teacher: <input type="text" name="activity[teacher]" length=40></input><br>
+<input type="submit" value="Submit"><br>
 <hr>
 <u>Students</u><br>
 <?php
@@ -54,8 +55,8 @@ $query = "SELECT * FROM `student` s
 INNER JOIN `student_yearly_info` syi
 ON s.student_index = syi.student_index
 WHERE syi.enrollment_year = (select max(enrollment_year) from `student_yearly_info`)
-LIMIT 10
-;ORDER BY `form` asc, `class` asc, `class_number` asc
+ORDER BY `form` asc, `class` asc, `class_number` asc
+;LIMIT 10
 ";
 
 $queryResult = $pdo->query($query);
@@ -85,7 +86,6 @@ echo("</checkbox>");
 
 $pdo = null;
 ?>
-<input type="submit" value="Submit">
 </form>
 </body>
 </html>
