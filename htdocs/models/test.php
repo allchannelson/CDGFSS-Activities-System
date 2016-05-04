@@ -5,12 +5,12 @@ require 'pdo.cdgfss.php';
 $test = new cdgfss_pdo();
 $testResults =  $test->reportActivity_AllActivities_AllStudents();
 ?>
-<table>
-<?php foreach ($testResults as $row): ?>
+<table border=1>
+  <?php foreach ($testResults as $row): ?>
   <tr>
     <?php foreach ($row as $field): ?>
-      <td><?= $field ?></td>
+    <td><?= $field ?></td>
     <?php endforeach ?>
   </tr>
-<?php endforeach ?>
+  <?php endforeach ?>
 </table>
