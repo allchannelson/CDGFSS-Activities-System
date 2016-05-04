@@ -7,6 +7,10 @@ $user = 'submit';
 $password = 'DqcJ3WeWWYQBTG6r';
 $dsn = "mysql:dbname=$dbname;host=localhost;charset=utf8";
 
+function e($arg_1) {
+   echo(htmlentities($arg_1));
+}
+
 /* check connection */
 try {
   $pdo = new PDO($dsn, $user, $password);
