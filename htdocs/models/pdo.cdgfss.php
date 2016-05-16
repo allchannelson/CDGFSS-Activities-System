@@ -7,19 +7,31 @@ class cdgfss_pdo extends PdoModel {
 
   private $submit_user = 'submit';
   private $submit_password = 'DqcJ3WeWWYQBTG6r'; // dev 15ys
+  
+  private $initSelect = false;
+  private $initSubmit = false;
 
   public function __construct() {
-    $this->initSelect();
+    // moving object initialization to the query functions instead, when it is needed
+    // $this->initSelect();
   }
   
-  public function initSelect() {
+  private function initSelect() {
     echo("Init Select()<br>\n");
-    $this->initPdo($this->dsn, $this->select_only_user, $this->select_only_password);
+    if (!$this->initSelect) {
+      $this->initSelect = true;
+      $this->initSubmit = false;
+      $this->initPdo($this->dsn, $this->select_only_user, $this->select_only_password);
+    }
     echo("Done<br>\n");
   }
   
-  public function initSubmit() {
-    $this->initPdo($dsn, $submit_user, $submit_password);
+  private function initSubmit() {
+    if (!$this->initSubmit) {
+      $initSubmit = true;
+      $initSelect = false;
+    }
+    $this->initPdo($this->dsn, $this->submit_user, $this->submit_password);
   }
   
   private function initPdo($aDSN, $aUser, $aPassword) {
@@ -34,7 +46,10 @@ class cdgfss_pdo extends PdoModel {
   private function queryCheck($args) {
     if ($args === false) {
       return array(array("SQL Error"));
-      // this is done because the query output is most likely being processed by nested FOREACH, so it requires an array in an array for the FOREACH to not error out.
+      // this is done because the query output is being processed by nested FOREACH,
+      // so it requires an array in an array for the FOREACH to not error out.
+      
+      // need to getting more error details...
     } else {
       return $args;
     }
@@ -69,6 +84,7 @@ class cdgfss_pdo extends PdoModel {
   public function reportActivity_AllActivities_AllStudents($args = PDO::FETCH_ASSOC) {
     // The UNION exists so the output contains the column name. 
     // This is probably the simplest way to control the output and not have to do associative array with $key => $value processing.
+    $this->initSelect();
     $query = "
     (SELECT 'Act_Name_CHI', 'Act_Name_ENG', 'Act_Date', 'Act_Teacher', 'Std_Name_CHI', 'Std_Name_ENG', 'Class')
     UNION
