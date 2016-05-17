@@ -30,8 +30,8 @@ class cdgfss_pdo extends PdoModel {
     if (!$this->initSubmit) {
       $initSubmit = true;
       $initSelect = false;
+      $this->initPdo($this->dsn, $this->submit_user, $this->submit_password);
     }
-    $this->initPdo($this->dsn, $this->submit_user, $this->submit_password);
   }
   
   private function initPdo($aDSN, $aUser, $aPassword) {
@@ -84,6 +84,7 @@ class cdgfss_pdo extends PdoModel {
   public function reportActivity_AllActivities_AllStudents($args = PDO::FETCH_ASSOC) {
     // The UNION exists so the output contains the column name. 
     // This is probably the simplest way to control the output and not have to do associative array with $key => $value processing.
+    // 17052016 - UNION does not work.  It messed up the ORDER BY clause.
     $this->initSelect();
     $query = "
     (SELECT 'Act_Name_CHI', 'Act_Name_ENG', 'Act_Date', 'Act_Teacher', 'Std_Name_CHI', 'Std_Name_ENG', 'Class')
@@ -97,8 +98,7 @@ class cdgfss_pdo extends PdoModel {
       AND acts.student_enrollment_year = syi.enrollment_year
     INNER JOIN `student` s
       ON syi.`student_index` = s.`student_index`
-    WHERE 1
-    ORDER BY act.name_english)";
+    ORDER BY act.name_english asc, syi.form asc, syi.class asc, syi.class_number asc)";
     return $this->myQuery($query, $args);
   }
 }
