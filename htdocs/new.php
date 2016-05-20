@@ -1,5 +1,11 @@
 <html>
 <head>
+  <?php 
+    require 'models/pdo.php';
+    require 'models/pdo.cdgfss.php';
+
+    $cdgfssDB = new cdgfss_pdo();
+  ?>
   <script src="https://code.jquery.com/jquery-1.12.3.min.js"
     integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ="   
   crossorigin="anonymous"></script>
@@ -127,8 +133,8 @@
   
   function myBind(element) {
     // jQuery equivalent is basically like this:
-    // $(b).on('input propertychange', function() {validateForm();});
-    // but I want to code it without the library for learning
+    // $(b).on('input propertychange change click', function() {validateForm();});
+    // but I want to code it without the library
     element.setAttribute("oninput","validateForm()");
     element.setAttribute("onpropertychange","validateForm()");
     element.setAttribute("onchange","validateForm()");
@@ -227,7 +233,7 @@
     
     #left {
       float: left;
-      width: 40%;
+      width: 45%;
     }
     
     #right {
@@ -298,6 +304,14 @@
 <div id="main">
 <div id="left">
 <u>Students</u><span id="submitAlertStudents"></span><br>
+<select id="studentFilter">
+  <option value="">All</option>
+  <?php foreach ($cdgfssDB->listCurrentForm(PDO::FETCH_NUM) as $formsRow): 
+    // output is single column result, so fetching indexed arryw and doing $row[0] for quick access ?>
+    <option value="<?= $formsRow[0] ?>">S<?= $formsRow[0]?></option>
+  <?php endforeach; ?>
+  <option></option>
+</select><br>
 <?php
 $dbname = 'activity_prototype';
 $user = 'select_only';
@@ -335,19 +349,15 @@ foreach ($queryResult as $key => $row) {
   echo(sprintf("<input type='checkbox' name='checkboxArray[]' id='%s' value='%s,%s' class='studentCheck' data-student_form_class='%s%s' data-student_gender='%s' />", $key, $row['student_index'], $row['enrollment_year'], $row['form'], $row['class'], $row['gender']));
   // $row['student_index'], $row['student_number'], $row['name_chinese'], $row['name_english'], $row['gender'], $row['active']
   // e(sprintf("Index: %d  Student ID: %s  %s  %s  %s  Active: %d",
-  $output = sprintf("<label for='%s'>S%s%s%s %s %s %s %s %s %s</label>",
+  $output = sprintf("<label for='%s'>S%s%s%s %s %s %s</label>",
     f($key),
     f($row['form']),
     f($row['class']),
     f($row['class_number']),
     f($row['name_chinese']),
     f($row['name_english']),
-    (strtoupper($row['gender']) == "M"?"<span class='gender male'>♂</span>":(strtoupper($row['gender']) == "F"?"<span class='gender female'>♀</span>":"??")),
-    f($row['student_number']),
-    f($row['enrollment_year']),
-    f($row['house']),
-    f($row['active']),
-    null);
+    (strtoupper($row['gender']) == "M"?"<span class='gender male'>♂</span>":(strtoupper($row['gender']) == "F"?"<span class='gender female'>♀</span>":"??"))
+    );
   echo($output);
   echo("<br>");
 
@@ -416,7 +426,8 @@ $pdo = null;
     }
   }
   
-  function multiCheck(uncheck = false) {
+  function multiCheck(uncheck) {
+    uncheck = uncheck || false; // IE does not handle default parameter
     FormClassSelector = "";  // initialize for consistent behavior... 
     iForm = document.getElementById("multicheck_form").value;
     sClass = document.getElementById("multicheck_class").value;

@@ -81,15 +81,14 @@ class cdgfss_pdo extends PdoModel {
     }
   }
   
+  public function columns_AllActivities_AllStudents() {
+    return array("Act_Name_CHI","Act_Name_ENG","Act_Date","Act_Teacher","Std_Name_CHI","Std_Name_ENG","Class");
+  }
+  
   public function reportActivity_AllActivities_AllStudents($args = PDO::FETCH_ASSOC) {
-    // The UNION exists so the output contains the column name. 
-    // This is probably the simplest way to control the output and not have to do associative array with $key => $value processing.
-    // 17052016 - UNION does not work.  It messed up the ORDER BY clause.
     $this->initSelect();
     $query = "
-    (SELECT 'Act_Name_CHI', 'Act_Name_ENG', 'Act_Date', 'Act_Teacher', 'Std_Name_CHI', 'Std_Name_ENG', 'Class')
-    UNION
-    (SELECT act.name_chinese as 'Activity CHI', act.name_english 'Activity ENG', act.date, act.teacher, s.name_chinese, s.name_english, CONCAT(syi.form, syi.class, syi.class_number) AS 'Class'
+    SELECT act.name_chinese as 'Activity CHI', act.name_english 'Activity ENG', act.date, act.teacher, s.name_chinese, s.name_english, CONCAT(syi.form, syi.class, syi.class_number) AS 'Class'
     FROM `activity` act
     INNER JOIN `activity_student` acts
       ON act.activity_index = acts.activity_index
@@ -98,8 +97,21 @@ class cdgfss_pdo extends PdoModel {
       AND acts.student_enrollment_year = syi.enrollment_year
     INNER JOIN `student` s
       ON syi.`student_index` = s.`student_index`
-    ORDER BY act.name_english asc, syi.form asc, syi.class asc, syi.class_number asc)";
+    ORDER BY act.name_english asc, syi.form asc, syi.class asc, syi.class_number asc";
     return $this->myQuery($query, $args);
   }
+  
+  public function listCurrentForm($args = PDO::FETCH_ASSOC) {
+    $this->initSelect();
+    $query = "select distinct form from student_yearly_info order by form asc;";
+    return $this->myQuery($query, $args);
+  }
+  
+  public function listCurrentFormClass($args = PDO::FETCH_ASSOC) {
+    $this->initSelect();
+    $query = "select distinct concat(form,class) from student_yearly_info order by form asc, class asc;";
+    return $this->myQuery($query, $args);
+  }
+  
 }
 ?>
