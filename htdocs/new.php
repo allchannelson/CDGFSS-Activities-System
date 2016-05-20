@@ -310,7 +310,6 @@
     // output is single column result, so fetching indexed arryw and doing $row[0] for quick access ?>
     <option value="<?= $formsRow[0] ?>">S<?= $formsRow[0]?></option>
   <?php endforeach; ?>
-  <option></option>
 </select><br>
 <?php
 $dbname = 'activity_prototype';
@@ -373,12 +372,10 @@ $pdo = null;
   Form:
   <select id="multicheck_form">
     <option value="">All</option>
-    <option value="1">S1</option>
-    <option value="2">S2</option>
-    <option value="3">S3</option>
-    <option value="4">S4</option>
-    <option value="5">S5</option>
-    <option value="6">S6</option>
+    <?php foreach ($cdgfssDB->listCurrentForm(PDO::FETCH_NUM) as $formsRow): 
+      // output is single column result, so fetching indexed arryw and doing $row[0] for quick access ?>
+      <option value="<?= $formsRow[0] ?>">S<?= $formsRow[0]?></option>
+    <?php endforeach; ?>
   </select>
 </div>
 <div class="option">
