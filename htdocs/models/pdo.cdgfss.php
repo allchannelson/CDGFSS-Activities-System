@@ -1,4 +1,9 @@
 <?php
+
+/*
+Need to test:
+Adding new students.  Probably need a max(enrolled year) somewhere.
+*/
 class cdgfss_pdo extends PdoModel {
   private $dsn = "mysql:dbname=activity_prototype;host=localhost;charset=utf8";
 
@@ -110,6 +115,12 @@ class cdgfss_pdo extends PdoModel {
   public function listCurrentFormClass($args = PDO::FETCH_ASSOC) {
     $this->initSelect();
     $query = "select distinct concat(form,class) from student_yearly_info order by form asc, class asc;";
+    return $this->myQuery($query, $args);
+  }
+  
+  public function listCurrentClass($args = PDO::FETCH_ASSOC) {
+    $this->initSelect();
+    $query = "select distinct class from student_yearly_info order by class asc;";
     return $this->myQuery($query, $args);
   }
   
