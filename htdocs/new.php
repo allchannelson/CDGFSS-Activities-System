@@ -9,6 +9,12 @@
   <script src="https://code.jquery.com/jquery-1.12.3.min.js"
     integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ="   
   crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+  <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  <!--
+    jQuery dependencies:
+    datepicker
+  -->
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <script type="text/javascript">
   var StudentCheckboxErrorMessage = "Please Select At Least One Student";
@@ -21,6 +27,7 @@
     var c=document.forms["form"]["activity[name_english]"];
     var d=document.forms["form"]["activity[name_chinese]"];
     var e=document.forms["form"]["activity[date]"];
+    var f=document.forms["form"]["datepicker"];
 
     submitAlertStudentsHTML = document.getElementById("submitAlertStudents");
     submitAlertHTML = document.getElementById("submitAlert");
@@ -39,6 +46,7 @@
     unbind(c);
     unbind(d);
     unbind(e);
+    unbind(f);
     
     studentArray = document.getElementsByName("checkboxArray[]");
     for (i = 0; i < studentArray.length; i++) {
@@ -46,6 +54,7 @@
     }
 
     document.getElementById("submitButton").disabled = false;
+    document.getElementById("studentsSelected").innerHTML = 0;
   }
   
   function validateForm() {
@@ -62,12 +71,19 @@
     var c=document.forms["form"]["activity[name_english]"];
     var d=document.forms["form"]["activity[name_chinese]"];
     var e=document.forms["form"]["activity[date]"];
+    var f=document.forms["form"]["datepicker"];
+    
+    if (f.value==="") {e.value="";}
+    // activity[date] is a hidden field, populated by the datepicker
+    // activity[date] format is yyyymmdd for inserting into the DB
+    // datepicker format is dd/mm/yyyy
 
     resethighlight(a);
     resethighlight(b);
     resethighlight(c);
     resethighlight(d);
     resethighlight(e);
+    // f element has no label to reset
     
     if (typeof validateForm.onChangeBinding == 'undefined' || validateForm.onChangeBinding == false) {
       validateForm.onChangeBinding = true;
@@ -78,6 +94,7 @@
       myBind(c);
       myBind(d);
       myBind(e);
+      myBind(f);
       studentArray = document.getElementsByName("checkboxArray[]");
       for (i = 0; i < studentArray.length; i++) {
         myBind(studentArray[i]);
@@ -88,7 +105,8 @@
         b.value=="" ||
         c.value=="" ||
         d.value=="" ||
-        e.value=="") {
+        e.value=="" ||
+        f.value=="") {
       returnValue = false;
       submitAlertHTML.innerHTML = "Please complete following fields: "
       if (a.value=="") {
@@ -106,6 +124,7 @@
       if (e.value=="") {
         highlightRed(e);
       }
+      // f element is a hidden input, so no label exists
       submitAlertHTML.innerHTML = submitAlertHTML.innerHTML.slice(0, -2);  // Removing the trailing ", "
     }
     
@@ -125,20 +144,18 @@
   }
   
   function unbind(element) {
-    element.oninput="";
-    element.onpropertychange="";
-    element.onchange="";
-    element.onclick="";
+    var attributes = ["oninput", "onpropertychange", "onchange", "onclick"];
+    for (unbind.i = 0; unbind.i < attributes.length; unbind.i++) {
+      element.setAttribute(attributes[unbind.i], (element.getAttribute(attributes[unbind.i]) || "").replace("validateForm();", ""));
+    }
   }
   
   function myBind(element) {
-    // jQuery equivalent is basically like this:
-    // $(b).on('input propertychange change click', function() {validateForm();});
-    // but I want to code it without the library
-    element.setAttribute("oninput","validateForm()");
-    element.setAttribute("onpropertychange","validateForm()");
-    element.setAttribute("onchange","validateForm()");
-    element.setAttribute("onclick","validateForm()");
+    var attributes = ["oninput", "onpropertychange", "onchange", "onclick"];
+    // binding maintains existing bind.
+    for (myBind.i = 0; myBind.i < attributes.length; myBind.i++ ) {
+      element.setAttribute(attributes[myBind.i],(element.getAttribute(attributes[myBind.i]) || "") + "validateForm();");
+    }
   }
   
   function resethighlight(element) {
@@ -162,6 +179,17 @@
       }
     }
     return studentArrayChecked;
+  }
+  
+  function studentTotal() {
+    var studentArray = document.getElementsByName("checkboxArray[]");
+    var totalCount = 0;
+    for (i = 0; i < studentArray.length; i++) {
+      if (studentArray[i].checked) {
+        totalCount += 1;
+      }
+    }
+    document.getElementById("studentsSelected").innerHTML = totalCount;
   }
   </script>
   <style type="text/css">
@@ -187,7 +215,7 @@
       clear: right;
     }
     
-    #formHeaders div.label:nth-child(2n) {
+    #formHeaders div.label:nth-of-type(2n) {
       background-color: rgb(255, 255, 204)
     }
     
@@ -271,6 +299,10 @@
     .female {
       color: pink;
     }
+    
+    .hiddenStudent {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -287,7 +319,8 @@
 <div class="mandatory label">Name of Activity / Competition (CHI)</div>
 <input type="text" name="activity[name_chinese]" maxlength=100 /><br>
 <div class="mandatory label">Date</div>
-<input type="text" name="activity[date]" /><br>
+<input type="hidden" name="activity[date]" id="realDate" />
+<input type="text" name="datepicker" id="datepicker" /><br>
 <div class="label">Time:</div>
 <input type="text" name="activity[time]" /><br>
 <div class="label">Partner Organization (ENG)</div>
@@ -304,13 +337,53 @@
 <div id="main">
 <div id="left">
 <u>Students</u><span id="submitAlertStudents"></span><br>
-<select id="studentFilter">
-  <option value="">All</option>
-  <?php foreach ($cdgfssDB->listCurrentForm(PDO::FETCH_NUM) as $formsRow): 
-    // output is single column result, so fetching indexed arryw and doing $row[0] for quick access ?>
-    <option value="<?= $formsRow[0] ?>">S<?= $formsRow[0]?></option>
-  <?php endforeach; ?>
-</select><br>
+<span id="studentsSelected">0</span> selected<br>
+<div class="option">
+Show --
+</div>
+<div class="option">
+  Form:
+  <select id="studentFormFilter" oninput="studentFilter();">
+    <option value="">All</option>
+    <?php foreach ($cdgfssDB->listCurrentForm(PDO::FETCH_NUM) as $outputRow): 
+      // output is single column result, so fetching indexed array and doing $row[0] for quick access ?>
+      <option value="<?=$outputRow[0]?>">S<?=$outputRow[0]?></option>
+    <?php endforeach; ?>
+  </select>
+</div>
+<div class="option">
+  Class:
+  <select id="studentClassFilter" oninput="studentFilter();">
+    <option value="">All</option>
+    <?php foreach ($cdgfssDB->listCurrentClass(PDO::FETCH_NUM) as $outputRow): 
+      // output is single column result, so fetching indexed array and doing $row[0] for quick access ?>
+      <option value="<?=$outputRow[0]?>"><?=$outputRow[0]?></option>
+    <?php endforeach; ?>
+  </select>
+</div>
+<script type="text/javascript">
+  function studentFilter() {
+    // Hide all students, then unhide the selected ones
+    var studentArray = document.querySelectorAll("[data-student_form_class]");
+    for (studentFilter.i = 0; studentFilter.i < studentArray.length; studentFilter.i ++) {
+      studentArray[studentFilter.i].classList.add("hiddenStudent");
+      studentArray[studentFilter.i].nextElementSibling.classList.add("hiddenStudent");
+    }
+    var formValue = document.getElementById("studentFormFilter").value;
+    var classValue = document.getElementById("studentClassFilter").value;
+    var formClass = formValue + classValue;
+    if (classValue === "" && formValue === "") {
+      var filterArray = document.querySelectorAll("[data-student_form_class]");
+    } else {
+      var filterArray = document.querySelectorAll("[data-student_form_class*='" + formClass +"']");
+    }
+    for (studentFilter.i = 0; studentFilter.i < filterArray.length; studentFilter.i ++) {
+      filterArray[studentFilter.i].classList.remove("hiddenStudent");
+      filterArray[studentFilter.i].nextElementSibling.classList.remove("hiddenStudent");
+    }
+  }
+</script>
+<br><br>
 <?php
 $dbname = 'activity_prototype';
 $user = 'select_only';
@@ -345,7 +418,7 @@ ORDER BY `form` asc, `class` asc, `class_number` asc
 $queryResult = $pdo->query($query);
 
 foreach ($queryResult as $key => $row) {
-  echo(sprintf("<input type='checkbox' name='checkboxArray[]' id='%s' value='%s,%s' class='studentCheck' data-student_form_class='%s%s' data-student_gender='%s' />", $key, $row['student_index'], $row['enrollment_year'], $row['form'], $row['class'], $row['gender']));
+  echo(sprintf("<div><input type='checkbox' name='checkboxArray[]' id='%s' value='%s,%s' class='studentCheck' data-student_form_class='%s%s' data-student_gender='%s' onclick='studentTotal();'/>", $key, $row['student_index'], $row['enrollment_year'], $row['form'], $row['class'], $row['gender']));
   // $row['student_index'], $row['student_number'], $row['name_chinese'], $row['name_english'], $row['gender'], $row['active']
   // e(sprintf("Index: %d  Student ID: %s  %s  %s  %s  Active: %d",
   $output = sprintf("<label for='%s'>S%s%s%s %s %s %s</label>",
@@ -358,7 +431,7 @@ foreach ($queryResult as $key => $row) {
     (strtoupper($row['gender']) == "M"?"<span class='gender male'>♂</span>":(strtoupper($row['gender']) == "F"?"<span class='gender female'>♀</span>":"??"))
     );
   echo($output);
-  echo("<br>");
+  echo("</div>");
 
 }
 echo("</checkbox>");
@@ -368,13 +441,14 @@ $pdo = null;
 </div>
 <div id="right">
 <u>Select Multiple Students</u><br>
+Note:  This will select hidden students.<br>
 <div class="option">
   Form:
   <select id="multicheck_form">
     <option value="">All</option>
-    <?php foreach ($cdgfssDB->listCurrentForm(PDO::FETCH_NUM) as $formsRow): 
-      // output is single column result, so fetching indexed arryw and doing $row[0] for quick access ?>
-      <option value="<?= $formsRow[0] ?>">S<?= $formsRow[0]?></option>
+    <?php foreach ($cdgfssDB->listCurrentForm(PDO::FETCH_NUM) as $outputRow): 
+      // output is single column result, so fetching indexed array and doing $row[0] for quick access ?>
+      <option value="<?=$outputRow[0]?>">S<?=$outputRow[0]?></option>
     <?php endforeach; ?>
   </select>
 </div>
@@ -382,11 +456,10 @@ $pdo = null;
   Class:
   <select id="multicheck_class">
     <option value="">All</option>
-    <option value="A">A</option>
-    <option value="B">B</option>
-    <option value="C">C</option>
-    <option value="D">D</option>
-    <option value="E">E</option>
+    <?php foreach ($cdgfssDB->listCurrentClass(PDO::FETCH_NUM) as $outputRow): 
+      // output is single column result, so fetching indexed array and doing $row[0] for quick access ?>
+      <option value="<?=$outputRow[0]?>"><?=$outputRow[0]?></option>
+    <?php endforeach; ?>
   </select>
 </div>
 <div class="option">
@@ -405,14 +478,14 @@ $pdo = null;
 </div>
 <script type="text/javascript">
   function checkAll(elementArr) {
-    for (element in elementArr) {
-      elementArr[element].checked = true;
+    for (elementIndex in elementArr) {
+      elementArr[elementIndex].checked = true;
     }
   }
   
   function uncheckAll(elementArr) {
-    for (element in elementArr) {
-      elementArr[element].checked = false;
+    for (elementIndex in elementArr) {
+      elementArr[elementIndex].checked = false;
     }
   }
   
@@ -421,6 +494,7 @@ $pdo = null;
     if (validateForm.onChangeBinding) {
       validateForm();
     }
+    studentTotal();
   }
   
   function multiCheck(uncheck) {
@@ -465,7 +539,16 @@ $pdo = null;
     if (validateForm.onChangeBinding) {
       validateForm();
     }
+    studentTotal();
   }
+  
+  $("#datepicker").datepicker(
+    $.extend({
+      altField: '#realDate',
+      altFormat: 'yy-mm-dd',
+      dateFormat: 'dd/mm/yy'
+    })
+  );
 </script>
 
 <!-- closing section for <div id="right"> -->
