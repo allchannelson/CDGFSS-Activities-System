@@ -20,41 +20,46 @@
   var StudentCheckboxErrorMessage = "Please Select At Least One Student";
   validateForm.onChangeBinding = false;
   function resetForm() {
-    validateForm.onChangeBinding = false;
-    
-    var a=document.forms["form"]["activity[teacher]"];
-    var b=document.forms["form"]["activity[unit]"];
-    var c=document.forms["form"]["activity[name_english]"];
-    var d=document.forms["form"]["activity[name_chinese]"];
-    var e=document.forms["form"]["activity[date]"];
-    var f=document.forms["form"]["datepicker"];
+    /* This function may have redundant parts.  studentFilter() was when I figured out to setup an anonymous function to have the function
+       trigger after the reset.  Some of the forms may redundantly reset fields */
+    setTimeout(function() {
+      validateForm.onChangeBinding = false;
+      
+      var a=document.forms["form"]["activity[teacher]"];
+      var b=document.forms["form"]["activity[unit]"];
+      var c=document.forms["form"]["activity[name_english]"];
+      var d=document.forms["form"]["activity[name_chinese]"];
+      var e=document.forms["form"]["activity[date]"];
+      var f=document.forms["form"]["datepicker"];
 
-    submitAlertStudentsHTML = document.getElementById("submitAlertStudents");
-    submitAlertHTML = document.getElementById("submitAlert");
-    
-    submitAlertStudentsHTML.innerHTML = "";
-    submitAlertHTML.innerHTML = "";
-    
-    resethighlight(a);
-    resethighlight(b);
-    resethighlight(c);
-    resethighlight(d);
-    resethighlight(e);
-    
-    unbind(a);
-    unbind(b);
-    unbind(c);
-    unbind(d);
-    unbind(e);
-    unbind(f);
-    
-    studentArray = document.getElementsByName("checkboxArray[]");
-    for (i = 0; i < studentArray.length; i++) {
-      unbind(studentArray[i]);
-    }
+      submitAlertStudentsHTML = document.getElementById("submitAlertStudents");
+      submitAlertHTML = document.getElementById("submitAlert");
+      
+      submitAlertStudentsHTML.innerHTML = "";
+      submitAlertHTML.innerHTML = "";
+      
+      resethighlight(a);
+      resethighlight(b);
+      resethighlight(c);
+      resethighlight(d);
+      resethighlight(e);
+      
+      unbind(a);
+      unbind(b);
+      unbind(c);
+      unbind(d);
+      unbind(e);
+      unbind(f);
+      
+      studentArray = document.getElementsByName("checkboxArray[]");
+      for (i = 0; i < studentArray.length; i++) {
+        unbind(studentArray[i]);
+      }
 
-    document.getElementById("submitButton").disabled = false;
-    document.getElementById("studentsSelected").innerHTML = 0;
+      document.getElementById("submitButton").disabled = false;
+      document.getElementById("studentsSelected").innerHTML = 0;
+      studentFilter();
+    }, 0);
   }
   
   function validateForm() {
@@ -303,11 +308,19 @@
     .hiddenStudent {
       display: none;
     }
+    
+    #studentSearch {
+      width: 20em;
+    }
+    
+    .clearLeft {
+      clear: left;
+    }
   </style>
 </head>
 <body>
 <hr>
-<form name="form" onsubmit="return validateForm()" action="submit.php" method="post">
+<form name="form" onsubmit="return validateForm()" onReset="resetForm();" action="submit.php" method="post">
 <div id="formHeaders">
 <p><u>Activity</u><p>
 <div class="mandatory label">Teacher in charge</div>
@@ -336,30 +349,36 @@
 </div>
 <div id="main">
 <div id="left">
-<u>Students</u><span id="submitAlertStudents"></span><br>
-<span id="studentsSelected">0</span> selected<br>
-<div class="option">
-Show --
+<div class="clearLeft">
+  <u>Students</u><span id="submitAlertStudents"></span><br>
+  <span id="studentsSelected">0</span> selected
 </div>
-<div class="option">
-  Form:
-  <select id="studentFormFilter" oninput="studentFilter();">
-    <option value="">All</option>
-    <?php foreach ($cdgfssDB->listCurrentForm(PDO::FETCH_NUM) as $outputRow): 
-      // output is single column result, so fetching indexed array and doing $row[0] for quick access ?>
-      <option value="<?=$outputRow[0]?>">S<?=$outputRow[0]?></option>
-    <?php endforeach; ?>
-  </select>
+<div class="clearLeft">
+  <div class="option">Show --</div>
+  <div class="option">
+    Form:
+    <select id="studentFormFilter" oninput="studentFilter();">
+      <option value="">All</option>
+      <?php foreach ($cdgfssDB->listCurrentForm(PDO::FETCH_NUM) as $outputRow): 
+        // output is single column result, so fetching indexed array and doing $row[0] for quick access ?>
+        <option value="<?=$outputRow[0]?>">S<?=$outputRow[0]?></option>
+      <?php endforeach; ?>
+    </select>
+  </div>
+  <div class="option">
+    Class:
+    <select id="studentClassFilter" oninput="studentFilter();">
+      <option value="">All</option>
+      <?php foreach ($cdgfssDB->listCurrentClass(PDO::FETCH_NUM) as $outputRow): 
+        // output is single column result, so fetching indexed array and doing $row[0] for quick access ?>
+        <option value="<?=$outputRow[0]?>"><?=$outputRow[0]?></option>
+      <?php endforeach; ?>
+    </select>
+  </div>
 </div>
-<div class="option">
-  Class:
-  <select id="studentClassFilter" oninput="studentFilter();">
-    <option value="">All</option>
-    <?php foreach ($cdgfssDB->listCurrentClass(PDO::FETCH_NUM) as $outputRow): 
-      // output is single column result, so fetching indexed array and doing $row[0] for quick access ?>
-      <option value="<?=$outputRow[0]?>"><?=$outputRow[0]?></option>
-    <?php endforeach; ?>
-  </select>
+<div class="clearLeft">
+  <div class="option">Search --</div>
+  <div class="option"><input type="text" name="studentSearch" id="studentSearch" length=10 /></div>
 </div>
 <script type="text/javascript">
   function studentFilter() {
@@ -383,7 +402,6 @@ Show --
     }
   }
 </script>
-<br><br>
 <?php
 $dbname = 'activity_prototype';
 $user = 'select_only';
@@ -418,9 +436,14 @@ ORDER BY `form` asc, `class` asc, `class_number` asc
 $queryResult = $pdo->query($query);
 
 foreach ($queryResult as $key => $row) {
-  echo(sprintf("<div><input type='checkbox' name='checkboxArray[]' id='%s' value='%s,%s' class='studentCheck' data-student_form_class='%s%s' data-student_gender='%s' onclick='studentTotal();'/>", $key, $row['student_index'], $row['enrollment_year'], $row['form'], $row['class'], $row['gender']));
+  echo(sprintf("<div class='clearLeft'><input type='checkbox' name='checkboxArray[]' id='%s' value='%s,%s' class='studentCheck' data-student_form_class='%s%s' data-student_gender='%s' onclick='studentTotal();'/>", $key, $row['student_index'], $row['enrollment_year'], $row['form'], $row['class'], $row['gender']));
   // $row['student_index'], $row['student_number'], $row['name_chinese'], $row['name_english'], $row['gender'], $row['active']
   // e(sprintf("Index: %d  Student ID: %s  %s  %s  %s  Active: %d",
+  
+  /* this function can be made better
+     use JS to set constants, like the class.
+     probably can stuff the innerHTML into a data attribute for easier searching.
+  */
   $output = sprintf("<label for='%s'>S%s%s%s %s %s %s</label>",
     f($key),
     f($row['form']),
@@ -432,7 +455,6 @@ foreach ($queryResult as $key => $row) {
     );
   echo($output);
   echo("</div>");
-
 }
 echo("</checkbox>");
 
@@ -474,7 +496,7 @@ Note:  This will select hidden students.<br>
   <input type="button" value="Check" onclick="multiCheck()" />
   <input type="button" value="Uncheck" onclick="multiCheck(true)" />
   <input type="button" value="Uncheck All Students" onclick="uncheckAllStudents()" />
-  <input type="reset" value="** RESET FORM **" onclick="resetForm()"/>
+  <input type="reset" value="** RESET FORM **" />
 </div>
 <script type="text/javascript">
   function checkAll(elementArr) {
