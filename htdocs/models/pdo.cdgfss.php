@@ -22,13 +22,11 @@ class cdgfss_pdo extends PdoModel {
   }
   
   private function initSelect() {
-    echo("Init Select()<br>\n");
     if (!$this->initSelect) {
       $this->initSelect = true;
       $this->initSubmit = false;
       $this->initPdo($this->dsn, $this->select_only_user, $this->select_only_password);
     }
-    echo("Done<br>\n");
   }
   
   private function initSubmit() {
@@ -50,11 +48,14 @@ class cdgfss_pdo extends PdoModel {
   
   private function queryCheck($args) {
     if ($args === false) {
-      return array(array("SQL Error"));
       // this is done because the query output is being processed by nested FOREACH,
       // so it requires an array in an array for the FOREACH to not error out.
+      // return array(array("SQL Error"));
       
-      // need to getting more error details...
+      // actually, the above just doesn't work all the time, need a better way to display an error... 
+      return null;
+      
+      // need to get more error details...
     } else {
       return $args;
     }
@@ -93,16 +94,16 @@ class cdgfss_pdo extends PdoModel {
   public function reportActivity_AllActivities_AllStudents($args = PDO::FETCH_ASSOC) {
     $this->initSelect();
     $query = "
-    SELECT act.name_chinese as 'Activity CHI', act.name_english 'Activity ENG', act.date, act.teacher, s.name_chinese, s.name_english, CONCAT(syi.form, syi.class, syi.class_number) AS 'Class'
-    FROM `activity` act
-    INNER JOIN `activity_student` acts
-      ON act.activity_index = acts.activity_index
-    INNER JOIN `student_yearly_info` syi
-      ON acts.student_index = syi.student_index 
-      AND acts.student_enrollment_year = syi.enrollment_year
-    INNER JOIN `student` s
-      ON syi.`student_index` = s.`student_index`
-    ORDER BY act.name_english asc, syi.form asc, syi.class asc, syi.class_number asc";
+      SELECT act.name_chinese as 'Activity CHI', act.name_english 'Activity ENG', act.date, act.teacher, s.name_chinese, s.name_english, CONCAT(syi.form, syi.class, syi.class_number) AS 'Class'
+        FROM `activity` act
+       INNER JOIN `activity_student` acts
+          ON act.activity_index = acts.activity_index
+  INNER JOIN `student_yearly_info` syi
+          ON acts.student_index = syi.student_index 
+         AND acts.student_enrollment_year = syi.enrollment_year
+  INNER JOIN `student` s
+          ON syi.`student_index` = s.`student_index`
+       ORDER BY act.name_english asc, syi.form asc, syi.class asc, syi.class_number asc";
     return $this->myQuery($query, $args);
   }
   
@@ -121,6 +122,17 @@ class cdgfss_pdo extends PdoModel {
   public function listCurrentClass($args = PDO::FETCH_ASSOC) {
     $this->initSelect();
     $query = "select distinct class from student_yearly_info order by class asc;";
+    return $this->myQuery($query, $args);
+  }
+  
+  public function listCurrentStudent($args = PDO::FETCH_ASSOC) {
+    $this->initSelect();
+    $query = "
+      SELECT * FROM `student` s
+  INNER JOIN `student_yearly_info` syi
+          ON s.student_index = syi.student_index
+       WHERE syi.enrollment_year = (select max(enrollment_year) from `student_yearly_info`)
+    ORDER BY `form` asc, `class` asc, `class_number` asc";
     return $this->myQuery($query, $args);
   }
   

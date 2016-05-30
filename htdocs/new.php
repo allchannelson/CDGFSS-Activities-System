@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
   <?php 
@@ -225,7 +226,7 @@
     }
     
     #formHeaders input[type="text"] {
-      width: 40em;
+      width: 25em;
       font-size: 1.2em;
     }
     
@@ -261,7 +262,7 @@
     }
     
     #main {
-      width: 75em;
+      width: 60em;
     }
     
     #left {
@@ -305,11 +306,11 @@
       color: pink;
     }
     
-    .hiddenStudent {
+    .hiddenStudent, .hiddenStudentFilter  {
       display: none;
     }
     
-    #studentSearch {
+    #studentSearchInput {
       width: 20em;
     }
     
@@ -322,7 +323,7 @@
 <hr>
 <form name="form" onsubmit="return validateForm()" onReset="resetForm();" action="submit.php" method="post">
 <div id="formHeaders">
-<p><u>Activity</u><p>
+<p><u>Activity</u></p>
 <div class="mandatory label">Teacher in charge</div>
 <input type="text" name="activity[teacher]" maxlength=100 /><br>
 <div class="mandatory label">Participating Unit</div>
@@ -357,7 +358,7 @@
   <div class="option">Show --</div>
   <div class="option">
     Form:
-    <select id="studentFormFilter" oninput="studentFilter();">
+    <select id="studentFormFilter" onchange="studentFilter();">
       <option value="">All</option>
       <?php foreach ($cdgfssDB->listCurrentForm(PDO::FETCH_NUM) as $outputRow): 
         // output is single column result, so fetching indexed array and doing $row[0] for quick access ?>
@@ -367,7 +368,7 @@
   </div>
   <div class="option">
     Class:
-    <select id="studentClassFilter" oninput="studentFilter();">
+    <select id="studentClassFilter" onchange="studentFilter();">
       <option value="">All</option>
       <?php foreach ($cdgfssDB->listCurrentClass(PDO::FETCH_NUM) as $outputRow): 
         // output is single column result, so fetching indexed array and doing $row[0] for quick access ?>
@@ -378,9 +379,37 @@
 </div>
 <div class="clearLeft">
   <div class="option">Search --</div>
-  <div class="option"><input type="text" name="studentSearch" id="studentSearch" length=10 /></div>
+  <div class="option"><input type="text" name="studentSearchInput" id="studentSearchInput" oninput="studentSearch();" /></div>
+  <div class="option">You can search by Form, Class, or Name.</div>
 </div>
 <script type="text/javascript">
+  $('input#studentSearchInput').keydown(function(e) {
+    if(e.keyCode == 13) { // enter key was pressed
+      
+      return false; // prevent execution of rest of the script + event propagation / event bubbling + prevent default behaviour
+    }
+  });
+  
+  function studentSearch() {
+    var obj = document.getElementById("studentSearchInput");
+    var studentArray = document.querySelectorAll("[data-student_form_class]:not(.hiddenStudent)");
+    var regEx = new RegExp(obj.value, "i");  // do not enable the "g" flag for test().  This produces a documented, but unwanted, behavior
+    // console.log(regEx);
+    
+    for (this.i = 0; this.i < studentArray.length; this.i++) {
+      // using a basic RegEx to get rid of the <span> in the labels.
+      studentArrayLabel = studentArray[i].nextElementSibling.innerHTML.replace(/<span.*<\/span>/i, "");
+      // console.log(studentArrayLabel + "|" + regEx.test(studentArrayLabel));
+      if (!regEx.test(studentArrayLabel)) {
+        studentArray[i].classList.add("hiddenStudentFilter");
+        studentArray[i].nextElementSibling.classList.add("hiddenStudentFilter");
+      } else {
+        studentArray[i].classList.remove("hiddenStudentFilter");
+        studentArray[i].nextElementSibling.classList.remove("hiddenStudentFilter");
+      }
+    }
+  }
+
   function studentFilter() {
     // Hide all students, then unhide the selected ones
     var studentArray = document.querySelectorAll("[data-student_form_class]");
@@ -400,22 +429,10 @@
       filterArray[studentFilter.i].classList.remove("hiddenStudent");
       filterArray[studentFilter.i].nextElementSibling.classList.remove("hiddenStudent");
     }
+    studentSearch();
   }
 </script>
 <?php
-$dbname = 'activity_prototype';
-$user = 'select_only';
-$password = 'xBX8swTSrGawmB5r';
-$dsn = "mysql:dbname=$dbname;host=localhost;charset=utf8";
-
-/* check connection */
-try {
-  $pdo = new PDO($dsn, $user, $password);
-} catch (PDOException $e) {
-  e(sprintf("Connection failed: %s\n", $e->getMessage()));
-  exit();
-}
-
 /* custom function for HTML output */
 function e($arg_1) {
   echo(htmlentities($arg_1));
@@ -425,25 +442,19 @@ function f($arg_1) {
   return htmlentities($arg_1);
 }
 
-$query = "SELECT * FROM `student` s
-INNER JOIN `student_yearly_info` syi
-ON s.student_index = syi.student_index
-WHERE syi.enrollment_year = (select max(enrollment_year) from `student_yearly_info`)
-ORDER BY `form` asc, `class` asc, `class_number` asc
-;LIMIT 10
-";
-
-$queryResult = $pdo->query($query);
-
-foreach ($queryResult as $key => $row) {
-  echo(sprintf("<div class='clearLeft'><input type='checkbox' name='checkboxArray[]' id='%s' value='%s,%s' class='studentCheck' data-student_form_class='%s%s' data-student_gender='%s' onclick='studentTotal();'/>", $key, $row['student_index'], $row['enrollment_year'], $row['form'], $row['class'], $row['gender']));
+foreach ($cdgfssDB->listCurrentStudent() as $key => $row) {
+  // See [Optimization: studentArray]
+  // moved class='studentCheck' and onclick='studentTotal();' to the following javascript section to reduce network foot print
+  echo(sprintf("<div class='clearLeft'><input type='checkbox' name='checkboxArray[]' id='%s' value='%s,%s' data-student_form_class='%s%s' data-student_gender='%s' />",
+    $key,
+    $row['student_index'],
+    $row['enrollment_year'],
+    $row['form'],
+    $row['class'],
+    $row['gender']));
   // $row['student_index'], $row['student_number'], $row['name_chinese'], $row['name_english'], $row['gender'], $row['active']
   // e(sprintf("Index: %d  Student ID: %s  %s  %s  %s  Active: %d",
   
-  /* this function can be made better
-     use JS to set constants, like the class.
-     probably can stuff the innerHTML into a data attribute for easier searching.
-  */
   $output = sprintf("<label for='%s'>S%s%s%s %s %s %s</label>",
     f($key),
     f($row['form']),
@@ -456,10 +467,16 @@ foreach ($queryResult as $key => $row) {
   echo($output);
   echo("</div>");
 }
-echo("</checkbox>");
-
 $pdo = null;
 ?>
+<script type="text/javascript">
+  /* [Optimization: studentArray] */
+  var studentArray = document.querySelectorAll('input[data-student_form_class]')
+  for (i = 0; i < studentArray.length; i++) {
+    studentArray[i].setAttribute("onclick", "studentTotal();");
+    studentArray[i].setAttribute("class", "studentCheck");
+  }
+</script>
 </div>
 <div id="right">
 <u>Select Multiple Students</u><br>
