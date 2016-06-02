@@ -369,6 +369,10 @@
       padding: 0.3em;
     }
     
+    #advoptions p {
+      margin: 0.5em initial;
+    }
+    
     #advoptioncheckboxes {
       margin-top: 1em;
     }
@@ -457,7 +461,8 @@
 <div class="clearLeft" id="advblock">
   <a href="javascript:toggleAdvOptions();">Advanced Options</a>
   <div class="hidden" id="advoptions">
-      Wildcards are supported (e.g.: 1?20 to search all Form 1 students with number 20)
+      <p>Wildcards are supported (e.g.: 1?20 to search all Form 1 students with number 20)</p>
+      <p>Pressing [Enter] will check the first name by default</p>
       <div id="advoptioncheckboxes">
         <input type="checkbox" id="clearAfterEnter" /><label for="clearAfterEnter">Clear Search after [Enter]</label>
         <input type="checkbox" id="clearClassNumberAfterEnter" /><label for="clearClassNumberAfterEnter">Clear Class Number after [Enter]</label>
