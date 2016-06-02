@@ -21,7 +21,7 @@
   var StudentCheckboxErrorMessage = "Please Select At Least One Student";
   validateForm.onChangeBinding = false;
   function resetForm() {
-    /* This function may have redundant parts.  studentFilter() was when I figured out to setup an anonymous function to have the function
+    /* This function may have redundant parts.  studentFilter() was added when I figured out to setup an anonymous function to have the function
        trigger after the reset.  Some of the forms may redundantly reset fields */
     setTimeout(function() {
       validateForm.onChangeBinding = false;
@@ -187,6 +187,43 @@
     return studentArrayChecked;
   }
   
+  function UncheckWithEnter(obj) {
+    var doNotUncheckState = document.getElementById("doNotUncheck").checked;
+    var thisState = obj.checked;
+    if (doNotUncheckState) {
+      obj.checked = true;
+    } else {
+      obj.checked = (thisState ? false : true);
+    }
+  }
+  
+  function studentSearchEnter() {
+    var clearAfterEnterState = document.getElementById("clearAfterEnter").checked;
+    var clearClassNumberState = document.getElementById("clearClassNumberAfterEnter").checked;
+    var checkAllState = document.getElementById("checkAll").checked;
+    var searchPreviousYearState = document.getElementById("searchPreviousYear").checked;
+    var searchOnlyPreviousYearState = document.getElementById("searchOnlyPreviousYear").checked;
+    
+    if (checkAllState) {
+      var shownCheckBoxes = document.querySelectorAll("[data-student_form_class]:not(.hiddenStudentFilter):not(.hiddenStudent)");
+      for (studentSearchEnter.i = 0; studentSearchEnter.i < shownCheckBoxes.length; studentSearchEnter.i++) {
+        UncheckWithEnter(shownCheckBoxes[studentSearchEnter.i]);
+      }
+    } else {
+      var firstCheckBox = document.querySelectorAll("[data-student_form_class]:not(.hiddenStudentFilter):not(.hiddenStudent)")[0];
+      UncheckWithEnter(firstCheckBox);
+    }
+    if (clearAfterEnterState) {
+      document.getElementById("studentSearchInput").value = "";
+    }
+    
+    if (clearClassNumberState) {
+      document.getElementById("studentSearchInput").value = document.getElementById("studentSearchInput").value.replace(/[0-9]+$/, "");
+    }
+    // studentSearch(); // triger this so the searched students update
+    // for usability, maybe not update the student search list after enter, because it is hard to tell if the student is checked
+  }
+  
   function studentTotal() {
     var studentArray = document.getElementsByName("checkboxArray[]");
     var totalCount = 0;
@@ -267,12 +304,13 @@
     
     #left {
       float: left;
-      width: 45%;
+      width: 50%;
+      margin-bottom: 10em;
     }
     
     #right {
       float: right;
-      width: 55%;
+      width: 50%;
     }
     
     .option {
@@ -306,17 +344,51 @@
       color: pink;
     }
     
-    .hiddenStudent, .hiddenStudentFilter  {
+    .hiddenStudent, .hiddenStudentFilter, .hidden, .hiddenStudentUnchecked {
       display: none;
+    }
+    
+    #studentList {
     }
     
     #studentSearchInput {
       width: 20em;
     }
     
+    #advblock {
+      margin-bottom: 1em;
+    }
+    
+    #advblock #showAllCheckedButton {
+      margin-top: 1em;
+    }
+    
+    #advoptions {
+      width: 80%;
+      border: 5px ridge #cccccc;
+      padding: 0.3em;
+    }
+    
+    #advoptioncheckboxes {
+      margin-top: 1em;
+    }
+    
+    #advoptioncheckboxes input {
+      float: left;
+      clear: left;
+      margin-top: 0.5em;
+    }
+    
+    #advoptioncheckboxes label {
+      display: block;
+      line-height: 1.5em;
+      overflow: hidden;
+    }
+    
     .clearLeft {
       clear: left;
     }
+    
   </style>
 </head>
 <body>
@@ -379,21 +451,101 @@
 </div>
 <div class="clearLeft">
   <div class="option">Search --</div>
-  <div class="option"><input type="text" name="studentSearchInput" id="studentSearchInput" oninput="studentSearch();" /></div>
-  <div class="option">You can search by Form, Class, or Name.</div>
+  <div class="option"><input type="text" name="studentSearchInput" id="studentSearchInput" oninput="studentSearch();" onchange="studentSearch();" onpropertychange="studentSearch();" /></div>
 </div>
+<div class="clearLeft">You can search by Form, Class, or Name.</div>
+<div class="clearLeft" id="advblock">
+  <a href="javascript:toggleAdvOptions();">Advanced Options</a>
+  <div class="hidden" id="advoptions">
+      Wildcards are supported (e.g.: 1?20 to search all Form 1 students with number 20)
+      <div id="advoptioncheckboxes">
+        <input type="checkbox" id="clearAfterEnter" /><label for="clearAfterEnter">Clear Search after [Enter]</label>
+        <input type="checkbox" id="clearClassNumberAfterEnter" /><label for="clearClassNumberAfterEnter">Clear Class Number after [Enter]</label>
+        <input type="checkbox" id="doNotUncheck" checked=true/><label for="doNotUncheck">Do not uncheck with [Enter]</label>
+        <input type="checkbox" id="checkAll" /><label for="checkAll">Check all found students with [Enter]</label>
+        <input type="checkbox" id="searchPreviousYear" /><label for="searchPreviousYear">Search including previous year's Form and Class Number</label>
+        <input type="checkbox" id="searchOnlyPreviousYear" /><label for="searchOnlyPreviousYear">Search <b>only</b> previous year's Form and Class Number</label>
+      </div>
+  </div>
+  <div id="showAllCheckedButton"><input type="button" id="showAllCheckedStudentButton" value="Show All Checked Students" onclick="showAllCheckedStudents()" /></div>
+</div>
+<script type="text/javascript">
+  function toggleAdvOptions() {
+    document.getElementById("advoptions").classList.toggle("hidden");
+  }
+</script>
 <script type="text/javascript">
   $('input#studentSearchInput').keydown(function(e) {
     if(e.keyCode == 13) { // enter key was pressed
-      
+      // this code checks the first checkbox
+      studentSearchEnter();
+      studentTotal();
       return false; // prevent execution of rest of the script + event propagation / event bubbling + prevent default behaviour
     }
   });
   
+  function removeStudentListClass(inputClass) {
+    var studentArray = document.querySelectorAll("[data-student_form_class]");
+    for (removeStudentListClass.i = 0; removeStudentListClass.i < studentArray.length; removeStudentListClass.i++) {
+      studentArray[removeStudentListClass.i].classList.remove(inputClass);
+      studentArray[removeStudentListClass.i].nextElementSibling.classList.remove(inputClass);
+    }
+  }
+  
+  function addStudentListClass(inputClass) {
+    var studentArray = document.querySelectorAll("[data-student_form_class]");
+    for (addStudentListClass.i = 0; addStudentListClass.i < studentArray.length; addStudentListClass.i++) {
+      studentArray[addStudentListClass.i].classList.add(inputClass);
+      studentArray[addStudentListClass.i].nextElementSibling.classList.add(inputClass);
+    }
+  }
+  
+  function resetSearch() {
+    document.getElementById("studentSearchInput").value = "";
+    removeStudentListClass("hidden");
+    removeStudentListClass("hiddenStudent");
+    removeStudentListClass("hiddenStudentUnchecked");
+    removeStudentListClass("hiddenStudentFilter");
+    removeStudentListClass("hiddenStudentFilterUnchecked");
+    document.getElementById("studentFormFilter").value = "";
+    document.getElementById("studentClassFilter").value = "";
+    document.getElementById("studentFormFilter").disabled = false;
+    document.getElementById("studentClassFilter").disabled = false;
+  }
+  
+  function showAllCheckedStudents() {
+    resetSearch();
+    addStudentListClass("hiddenStudentUnchecked");
+    var studentArray = document.querySelectorAll("[data-student_form_class]:checked");
+    for (showAllCheckedStudents.i = 0; showAllCheckedStudents.i < studentArray.length; showAllCheckedStudents.i++) {
+      studentArray[showAllCheckedStudents.i].classList.remove("hiddenStudentUnchecked");
+      studentArray[showAllCheckedStudents.i].nextElementSibling.classList.remove("hiddenStudentUnchecked");
+    }
+    showAllButton = document.getElementById("showAllCheckedStudentButton");
+    showAllButton.setAttribute("onclick", "notShowAllCheckedStudents()");
+    showAllButton.value = "Restore";
+    document.getElementById("studentFormFilter").disabled = true;
+    document.getElementById("studentClassFilter").disabled = true;
+  }
+  
+  function notShowAllCheckedStudents() {
+    resetShowAllCheckedStudents();
+    showAllButton = document.getElementById("showAllCheckedStudentButton");
+    showAllButton.setAttribute("onclick", "showAllCheckedStudents()");
+    showAllButton.value = "Show All Checked Students";
+  }
+  
+  function resetShowAllCheckedStudents() {
+    resetSearch();
+  }
+  
   function studentSearch() {
+    // resetShowAllCheckedStudents();
     var obj = document.getElementById("studentSearchInput");
     var studentArray = document.querySelectorAll("[data-student_form_class]:not(.hiddenStudent)");
-    var regEx = new RegExp(obj.value, "i");  // do not enable the "g" flag for test().  This produces a documented, but unwanted, behavior
+    var wildCardReplacedValue = obj.value.replace(/\?/, ".");
+    var wildCardReplacedValue = wildCardReplacedValue.replace(/\*/, ".*");
+    var regEx = new RegExp(wildCardReplacedValue, "i");  // do not enable the "g" flag for test().  This produces a documented, but unwanted, behavior
     // console.log(regEx);
     
     for (this.i = 0; this.i < studentArray.length; this.i++) {
@@ -432,6 +584,7 @@
     studentSearch();
   }
 </script>
+<span id="studentList">
 <?php
 /* custom function for HTML output */
 function e($arg_1) {
@@ -477,7 +630,8 @@ $pdo = null;
     studentArray[i].setAttribute("class", "studentCheck");
   }
 </script>
-</div>
+</span> <!-- ending tag for <span id="studentList">-->
+</div> <!-- ending tag for <div id="left"> -->
 <div id="right">
 <u>Select Multiple Students</u><br>
 Note:  This will select hidden students.<br>
@@ -592,7 +746,6 @@ Note:  This will select hidden students.<br>
 
 <!-- closing section for <div id="right"> -->
 </div> 
-
 
 <!-- closing section for <div id="main"> -->
 <span style="clear: both;"></span>
