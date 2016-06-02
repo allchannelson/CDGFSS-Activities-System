@@ -477,7 +477,6 @@
 <script type="text/javascript">
   $('input#studentSearchInput').keydown(function(e) {
     if(e.keyCode == 13) { // enter key was pressed
-      // this code checks the first checkbox
       studentSearchEnter();
       studentTotal();
       return false; // prevent execution of rest of the script + event propagation / event bubbling + prevent default behaviour
