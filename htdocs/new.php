@@ -18,7 +18,7 @@
   -->
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <script type="text/javascript">
-  var StudentCheckboxErrorMessage = "Please Select At Least One Student";
+  var STUDENT_CHECKBOX_ERROR_MESSAGE = "Please Select At Least One Student";
   validateForm.onChangeBinding = false;
   function resetForm() {
     /* This function may have redundant parts.  studentFilter() was added when I figured out to setup an anonymous function to have the function
@@ -136,7 +136,7 @@
     
     if (!checkIfStudentsAreSelected()) {
       returnValue = false;
-      submitAlertStudentsHTML.innerHTML = StudentCheckboxErrorMessage;
+      submitAlertStudentsHTML.innerHTML = STUDENT_CHECKBOX_ERROR_MESSAGE;  // constant //
     }
     
     submitButtonObj = document.getElementById("submitButton");
@@ -158,7 +158,7 @@
   
   function myBind(element) {
     var attributes = ["oninput", "onpropertychange", "onchange", "onclick"];
-    // binding maintains existing bind.
+    // binding preserves existing bind
     for (myBind.i = 0; myBind.i < attributes.length; myBind.i++ ) {
       element.setAttribute(attributes[myBind.i],(element.getAttribute(attributes[myBind.i]) || "") + "validateForm();");
     }
@@ -171,7 +171,6 @@
   
   function highlightRed(element) {
     prevSib = element.previousElementSibling;
-    // prevSib.style.color="red";
     prevSib.classList.add("missingLabel");
     submitAlertHTML.innerHTML = submitAlertHTML.innerHTML + " <span class='missingItem'>" + prevSib.innerHTML + "</span>, "
   }
@@ -210,8 +209,10 @@
         UncheckWithEnter(shownCheckBoxes[studentSearchEnter.i]);
       }
     } else {
-      var firstCheckBox = document.querySelectorAll("[data-student_form_class]:not(.hiddenStudentFilter):not(.hiddenStudent)")[0];
-      UncheckWithEnter(firstCheckBox);
+      var firstCheckBox;
+      if (firstCheckBox = document.querySelectorAll("[data-student_form_class]:not(.hiddenStudentFilter):not(.hiddenStudent)")[0]) {
+        UncheckWithEnter(firstCheckBox);
+      }
     }
     if (clearAfterEnterState) {
       document.getElementById("studentSearchInput").value = "";
@@ -393,6 +394,9 @@
       clear: left;
     }
     
+    .prevYear {
+    }
+    
   </style>
 </head>
 <body>
@@ -554,7 +558,7 @@
     
     for (this.i = 0; this.i < studentArray.length; this.i++) {
       // using a basic RegEx to get rid of the <span> in the labels.
-      studentArrayLabel = studentArray[i].nextElementSibling.innerHTML.replace(/<span.*<\/span>/i, "");
+      studentArrayLabel = studentArray[i].nextElementSibling.innerHTML.replace(/<\/?span.*?>/ig, "");
       // console.log(studentArrayLabel + "|" + regEx.test(studentArrayLabel));
       if (!regEx.test(studentArrayLabel)) {
         studentArray[i].classList.add("hiddenStudentFilter");
@@ -599,29 +603,32 @@ function f($arg_1) {
   return htmlentities($arg_1);
 }
 
+$previousYearFormClassNumber = $cdgfssDB->listPreviousYearStudentFormClassNumber()->fetchAll(PDO::FETCH_ASSOC);
+
 foreach ($cdgfssDB->listCurrentStudent() as $key => $row) {
   // See [Optimization: studentArray]
   // moved class='studentCheck' and onclick='studentTotal();' to the following javascript section to reduce network foot print
-  echo(sprintf("<div class='clearLeft'><input type='checkbox' name='checkboxArray[]' id='%s' value='%s,%s' data-student_form_class='%s%s' data-student_gender='%s' />",
-    $key,
-    $row['student_index'],
-    $row['enrollment_year'],
-    $row['form'],
-    $row['class'],
-    $row['gender']));
-  // $row['student_index'], $row['student_number'], $row['name_chinese'], $row['name_english'], $row['gender'], $row['active']
-  // e(sprintf("Index: %d  Student ID: %s  %s  %s  %s  Active: %d",
+  $prevFormClass = array_key_exists($key, $previousYearFormClassNumber) ? $previousYearFormClassNumber[$key]['formclassnumber'] : "";
+  echo(sprintf("<div class='clearLeft'><input type='checkbox' name='checkboxArray[]' id='%s' value='%s,%s' data-student_form_class='%s%s' data-student_gender='%s' data-previous_form_classnumber='%s'/>",
+    f($key),
+    f($row['student_index']),
+    f($row['enrollment_year']),
+    f($row['form']),
+    f($row['class']),
+    f($row['gender']),
+    f($prevFormClass)));
   
-  $output = sprintf("<label for='%s'>S%s%s%s %s %s %s</label>",
+  echo(sprintf("<label for='%s'>S%s%s%s <span class='prevYear'></span>%s %s %s</label>",
     f($key),
     f($row['form']),
     f($row['class']),
     f($row['class_number']),
+    // f($prevFormClass),
     f($row['name_chinese']),
     f($row['name_english']),
     (strtoupper($row['gender']) == "M"?"<span class='gender male'>♂</span>":(strtoupper($row['gender']) == "F"?"<span class='gender female'>♀</span>":"??"))
-    );
-  echo($output);
+    )
+  );
   echo("</div>");
 }
 $pdo = null;

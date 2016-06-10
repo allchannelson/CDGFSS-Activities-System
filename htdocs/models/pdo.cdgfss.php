@@ -72,6 +72,7 @@ class cdgfss_pdo extends PdoModel {
   private function myQueryBoth($args) {
     // nothing uses this at the moment... probably not necessary
     return $this->queryCheck($this->db->query($args));
+    // if the fetch mode is not specific, a foreach loop will produce doubled up results
   }
   
   private function myQuery($query, $args) {
@@ -93,6 +94,8 @@ class cdgfss_pdo extends PdoModel {
   
   public function reportActivity_AllActivities_AllStudents($args = PDO::FETCH_ASSOC) {
     $this->initSelect();
+    // column title is for debugging.  They are inaccessible from the PHP front-end.
+    // column title generated from columns_AllActivities_AllStudents()
     $query = "
       SELECT act.name_chinese as 'Activity CHI', act.name_english 'Activity ENG', act.date, act.teacher, s.name_chinese, s.name_english, CONCAT(syi.form, syi.class, syi.class_number) AS 'Class'
         FROM `activity` act
@@ -109,32 +112,54 @@ class cdgfss_pdo extends PdoModel {
   
   public function listCurrentForm($args = PDO::FETCH_ASSOC) {
     $this->initSelect();
-    $query = "select distinct form from student_yearly_info order by form asc;";
+    $query = "
+      SELECT distinct form
+        FROM student_yearly_info syi
+       WHERE syi.enrollment_year = (select max(enrollment_year) from `student_yearly_info`)
+    ORDER BY form asc;";
     return $this->myQuery($query, $args);
   }
   
   public function listCurrentFormClass($args = PDO::FETCH_ASSOC) {
     $this->initSelect();
-    $query = "select distinct concat(form,class) from student_yearly_info order by form asc, class asc;";
+    $query = "
+      SELECT distinct concat(form,class)
+        FROM student_yearly_info syi
+       WHERE syi.enrollment_year = (select max(enrollment_year) from `student_yearly_info`)
+    ORDER BY form asc, class asc;";
+    return $this->myQuery($query, $args);
+  }
+  
+  public function listPreviousYearStudentFormClassNumber($args = PDO::FETCH_ASSOC) {
+    $this->initSelect();
+    $query = "
+      SELECT student_index, concat(form,class,class_number) as formclassnumber
+        FROM student_yearly_info syi
+       WHERE syi.enrollment_year = (select max(enrollment_year) - 1 from `student_yearly_info`)
+    ORDER BY form asc, class asc, class_number asc;";
     return $this->myQuery($query, $args);
   }
   
   public function listCurrentClass($args = PDO::FETCH_ASSOC) {
     $this->initSelect();
-    $query = "select distinct class from student_yearly_info order by class asc;";
+    $query = "
+      SELECT distinct class
+        FROM student_yearly_info syi 
+       WHERE syi.enrollment_year = (select max(enrollment_year) from `student_yearly_info`)
+    ORDER BY class asc;";
     return $this->myQuery($query, $args);
   }
   
   public function listCurrentStudent($args = PDO::FETCH_ASSOC) {
     $this->initSelect();
     $query = "
-      SELECT * FROM `student` s
+      SELECT s.student_index, student_number, name_chinese, name_english, gender, active, enrollment_year, form, class, class_number, house
+        FROM `student` s
   INNER JOIN `student_yearly_info` syi
           ON s.student_index = syi.student_index
        WHERE syi.enrollment_year = (select max(enrollment_year) from `student_yearly_info`)
     ORDER BY `form` asc, `class` asc, `class_number` asc";
     return $this->myQuery($query, $args);
   }
-  
 }
 ?>
