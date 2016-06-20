@@ -196,12 +196,35 @@
     }
   }
   
+  function searchPreviousYearToggle() {
+    // document.querySelectorAll("[data-student_form_class][0].nextElementSibling.children[0].innerHTML = "Hello World";
+    // document.querySelectorAll("[data-student_form_class]")[0].getAttribute("data-previous_form_classnumber");
+    var studentArray = document.querySelectorAll("[data-student_form_class]");
+    if (typeof(searchPreviousYearToggle.toggle) == 'undefined' || searchPreviousYearToggle.toggle == false) {
+      searchPreviousYearToggle.toggle = true;
+      for (searchPreviousYearToggle.i = 0; searchPreviousYearToggle.i < studentArray.length; searchPreviousYearToggle.i++) {
+        thisElement = studentArray[searchPreviousYearToggle.i];
+        thisElementPrevYear = thisElement.getAttribute("data-previous_form_classnumber");
+        if (thisElementPrevYear != "") {
+          thisElement.nextElementSibling.children[0].innerHTML = "(" + thisElement.getAttribute("data-previous_form_classnumber") + ") ";
+        } else {
+          thisElement.nextElementSibling.children[0].innerHTML = "(n/a) ";
+        }
+      }
+    } else {
+      searchPreviousYearToggle.toggle = false;
+      for (searchPreviousYearToggle.i = 0; searchPreviousYearToggle.i < studentArray.length; searchPreviousYearToggle.i++) {
+        thisElement = studentArray[searchPreviousYearToggle.i];
+        thisElement.nextElementSibling.children[0].innerHTML = "";
+      }
+    }
+  }
+  
   function studentSearchEnter() {
     var clearAfterEnterState = document.getElementById("clearAfterEnter").checked;
     var clearClassNumberState = document.getElementById("clearClassNumberAfterEnter").checked;
     var checkAllState = document.getElementById("checkAll").checked;
     var searchPreviousYearState = document.getElementById("searchPreviousYear").checked;
-    var searchOnlyPreviousYearState = document.getElementById("searchOnlyPreviousYear").checked;
     
     if (checkAllState) {
       var shownCheckBoxes = document.querySelectorAll("[data-student_form_class]:not(.hiddenStudentFilter):not(.hiddenStudent)");
@@ -221,6 +244,12 @@
     if (clearClassNumberState) {
       document.getElementById("studentSearchInput").value = document.getElementById("studentSearchInput").value.replace(/[0-9]+$/, "");
     }
+    
+    if (searchPreviousYearState) {
+      // probably don't need to do anything, since the prev year will populate from clicking the checkbox
+    }
+    
+
     // studentSearch(); // triger this so the searched students update
     // for usability, maybe not update the student search list after enter, because it is hard to tell if the student is checked
   }
@@ -472,8 +501,7 @@
         <input type="checkbox" id="clearClassNumberAfterEnter" /><label for="clearClassNumberAfterEnter">Clear Class Number after [Enter]</label>
         <input type="checkbox" id="doNotUncheck" checked=true/><label for="doNotUncheck">Do not uncheck with [Enter]</label>
         <input type="checkbox" id="checkAll" /><label for="checkAll">Check all found students with [Enter]</label>
-        <input type="checkbox" id="searchPreviousYear" /><label for="searchPreviousYear">Search including previous year's Form and Class Number</label>
-        <input type="checkbox" id="searchOnlyPreviousYear" /><label for="searchOnlyPreviousYear">Search <b>only</b> previous year's Form and Class Number</label>
+        <input type="checkbox" id="searchPreviousYear" onclick="searchPreviousYearToggle()"/><label for="searchPreviousYear">Search including previous year's Form and Class Number</label>
       </div>
   </div>
   <div id="showAllCheckedButton"><input type="button" id="showAllCheckedStudentButton" value="Show All Checked Students" onclick="showAllCheckedStudents()" /></div>
@@ -551,9 +579,15 @@
     // resetShowAllCheckedStudents();
     var obj = document.getElementById("studentSearchInput");
     var studentArray = document.querySelectorAll("[data-student_form_class]:not(.hiddenStudent)");
-    var wildCardReplacedValue = obj.value.replace(/\?/, ".");
-    var wildCardReplacedValue = wildCardReplacedValue.replace(/\*/, ".*");
-    var regEx = new RegExp(wildCardReplacedValue, "i");  // do not enable the "g" flag for test().  This produces a documented, but unwanted, behavior
+    try {
+      var wildCardReplacedValue = obj.value.replace(/\?/, ".");
+      var wildCardReplacedValue = wildCardReplacedValue.replace(/\*/, ".*");
+      var regEx = new RegExp(wildCardReplacedValue, "i");  // do not enable the "g" flag for test().  This produces a documented, but unwanted, behavior
+    } catch(e) {
+      // the RegEx can throw exceptions if the search box has bad regex characters inputted, so we're just going to end the function instead of erroring out.
+      // extremely unlikely the users will bother learning RegEx to use it properly... so just going to leave it as it is.
+      return;
+    }
     // console.log(regEx);
     
     for (this.i = 0; this.i < studentArray.length; this.i++) {
@@ -607,7 +641,7 @@ $previousYearFormClassNumber = $cdgfssDB->listPreviousYearStudentFormClassNumber
 
 foreach ($cdgfssDB->listCurrentStudent() as $key => $row) {
   // See [Optimization: studentArray]
-  // moved class='studentCheck' and onclick='studentTotal();' to the following javascript section to reduce network foot print
+  // moved class='studentCheck' and onclick='studentTotal();' to the succeeding javascript section to reduce network footprint
   $prevFormClass = array_key_exists($key, $previousYearFormClassNumber) ? $previousYearFormClassNumber[$key]['formclassnumber'] : "";
   echo(sprintf("<div class='clearLeft'><input type='checkbox' name='checkboxArray[]' id='%s' value='%s,%s' data-student_form_class='%s%s' data-student_gender='%s' data-previous_form_classnumber='%s'/>",
     f($key),

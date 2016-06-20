@@ -1,0 +1,27 @@
+Student database
+- bulk update 
+  - the same file (CSV) will do two things:
+    - add new students, if they do not exist
+    - advance existing students
+- correct individual students
+
+Activity filling form:
+- Enter new activity
+- Edit existing activity
+- Update awards
+- Identify user (see security recommendations)
+
+Activity approval system:
+- Identify user (see security recommendations)
+
+
+Security:
+3 options
+ -> none
+ -> IP lock (implies an admin console)
+ -> password (implies an admin console)
+
+ IP lock will be the most straightforward, requires one time setup, lowest admin overhead and should be more consistent.
+ Password requires a far more complex admin, encrypting the password, reset options+.
+ 
+ For either options, if the security system encounters a problem, should it lock out and prevent entry?  Or does it allow entry but require review?
