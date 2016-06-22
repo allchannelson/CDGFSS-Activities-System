@@ -97,3 +97,38 @@ Then
 INSERT into activity_prototype.student_yearly_info () VALUES (LAST_INSERT_ID() ...)
 
 -- NOTE:  Not tested yet.  Will confirm with testing.
+
+-- selecting activity
+SELECT `activity_index`, `teacher`, `unit`, `name_english`, `name_chinese`, `date`, `time`, `partner_name_english`, `partner_name_chinese`, `destination`
+  FROM `activity`
+ WHERE activity_index = 1
+ 
+-- selecting all activity's students
+SELECT `student_index`, `student_enrollment_year`
+  FROM `activity_student` `as`
+ WHERE `as`.`activity_index` = 15
+
+-- yearly info only
+SELECT `student_index`, `enrollment_year`, `form`, `class`, `class_number`, `house`
+  FROM `student_yearly_info` `syi`
+ WHERE `student_index` = 750
+   AND `enrollment_year` = 2015
+   
+-- full student with specific yearly info
+SELECT `s`.`student_number`, `s`.`name_english`, `s`.`name_chinese`, `s`.`gender`, `syi`.`student_index`, `syi`.`enrollment_year`, `syi`.`form`, `syi`.`class`, `syi`.`class_number`, `syi`.`house`
+  FROM `student_yearly_info` `syi`
+  JOIN `student` `s`
+    ON `s`.`student_index` = `syi`.`student_index`
+ WHERE `syi`.`student_index` = 750
+   AND `syi`.`enrollment_year` = 2015
+
+-- full student info for a specific activity
+SELECT `s`.`student_number`, `s`.`name_english`, `s`.`name_chinese`, `s`.`gender`, `syi`.`student_index`, `syi`.`enrollment_year`, `syi`.`form`, `syi`.`class`, `syi`.`class_number`, `syi`.`house`
+  FROM `student_yearly_info` `syi`
+  JOIN `student` `s`
+    ON `s`.`student_index` = `syi`.`student_index`
+ WHERE (`syi`.`student_index`, `syi`.`enrollment_year`) IN (
+       SELECT `student_index`, `enrollment_year`
+         FROM `activity_student`
+        WHERE `activity_index` = 15)
+

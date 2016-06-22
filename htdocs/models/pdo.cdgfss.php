@@ -161,5 +161,28 @@ class cdgfss_pdo extends PdoModel {
     ORDER BY `form` asc, `class` asc, `class_number` asc";
     return $this->myQuery($query, $args);
   }
+
+  public function listActivity_AllStudents($activity_index, $args = PDO::FETCH_ASSOC) {
+    $this->initSelect();
+    $query = "
+    SELECT `s`.`student_number`, `s`.`name_english`, `s`.`name_chinese`, `s`.`gender`, `syi`.`student_index`, `syi`.`enrollment_year`, `syi`.`form`, `syi`.`class`, `syi`.`class_number`, `syi`.`house`
+      FROM `student_yearly_info` `syi`
+      JOIN `student` `s`
+        ON `s`.`student_index` = `syi`.`student_index`
+     WHERE (`syi`.`student_index`, `syi`.`enrollment_year`) IN (
+           SELECT `student_index`, `enrollment_year`
+             FROM `activity_student`
+            WHERE `activity_index` = $activity_index)";
+    return $this->myQuery($query, $args);
+  }
+  
+  public function listActivity_Details($activity_index, $args = PDO::FETCH_ASSOC) {
+    $this->initSelect();
+    $query = "
+    SELECT `activity_index`, `teacher`, `unit`, `name_english`, `name_chinese`, `date`, `time`, `partner_name_english`, `partner_name_chinese`, `destination`
+      FROM `activity`
+     WHERE activity_index = $activity_index";
+    return $this->myQuery($query, $args);
+  }
 }
 ?>
