@@ -19,8 +19,9 @@ CREATE TABLE IF NOT EXISTS `activity` (
   `partner_name_english` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
   `partner_name_chinese` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
   `destination` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `approved` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`activity_index`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
