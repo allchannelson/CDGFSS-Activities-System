@@ -8,7 +8,7 @@
     $cdgfssDB = new cdgfss_pdo();
   ?>
   <script src="https://code.jquery.com/jquery-1.12.3.min.js"
-    integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ="   
+    integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ="
   crossorigin="anonymous"></script>
   <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
   <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>

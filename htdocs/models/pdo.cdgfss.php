@@ -72,7 +72,7 @@ class cdgfss_pdo extends PdoModel {
   private function myQueryBoth($args) {
     // nothing uses this at the moment... probably not necessary
     return $this->queryCheck($this->db->query($args));
-    // if the fetch mode is not specific, a foreach loop will produce doubled up results
+    // if the fetch mode is not specified, a foreach loop will produce doubled up results
   }
   
   private function myQuery($query, $args) {
@@ -162,21 +162,28 @@ class cdgfss_pdo extends PdoModel {
     return $this->myQuery($query, $args);
   }
 
+  public function columns_Activity_AllStudents() {
+    return array("Student Number","Name (English)","Name (Chinese)","Form Class Number","Gender");
+  }
+
   public function listActivity_AllStudents($activity_index, $args = PDO::FETCH_ASSOC) {
+    // Need to remake this function to use Prepare()
     $this->initSelect();
     $query = "
-    SELECT `s`.`student_number`, `s`.`name_english`, `s`.`name_chinese`, `s`.`gender`, `syi`.`student_index`, `syi`.`enrollment_year`, `syi`.`form`, `syi`.`class`, `syi`.`class_number`, `syi`.`house`
+    SELECT `s`.`student_number`, `s`.`name_english`, `s`.`name_chinese`, concat(`syi`.`form`, `syi`.`class`, `syi`.`class_number`) as 'formclassnumber', `s`.`gender`
       FROM `student_yearly_info` `syi`
       JOIN `student` `s`
         ON `s`.`student_index` = `syi`.`student_index`
      WHERE (`syi`.`student_index`, `syi`.`enrollment_year`) IN (
            SELECT `student_index`, `enrollment_year`
              FROM `activity_student`
-            WHERE `activity_index` = $activity_index)";
+            WHERE `activity_index` = $activity_index)
+  ORDER BY `syi`.`form` asc, `syi`.`class` asc, `syi`.`class_number` asc";
     return $this->myQuery($query, $args);
   }
   
   public function listActivity_Details($activity_index, $args = PDO::FETCH_ASSOC) {
+    // Need to remake this function to use Prepare()
     $this->initSelect();
     $query = "
     SELECT `activity_index`, `teacher`, `unit`, `name_english`, `name_chinese`, `date`, `time`, `partner_name_english`, `partner_name_chinese`, `destination`
