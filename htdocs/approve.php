@@ -8,6 +8,8 @@
     exit("Missing or Invalid Activity ID");
   }
 ?>
+<script   src="https://code.jquery.com/jquery-3.0.0.min.js"   integrity="sha256-JmvOoLtYsmqlsWxa7mDSLMwa6dZ9rrIdtrrVYRnDRH0="   crossorigin="anonymous"></script>
+
 <style type="text/css">
   table, td, th {
     border-collapse: collapse;
@@ -18,12 +20,65 @@
     padding: .2em;
   }
   
+  tr:nth-of-type(2n) {
+    background-color: #DDD;
+  }
+  
   #mainTable td:nth-child(1) {
     padding-right: 1em;
   }
+  
+  #main {
+    
+  }
+  
+  #main button {
+    float: left;
+    margin-right: 7em;
+    width: 80px;
+  }
+  
+  hr {
+    margin-left: 0;
+    width: 40em;
+  }
+  
+  #text_status {
+    font-size: 90%;
+    color: #666;
+  }
+  
 </style>
+
 </head>
 <body>
+<form method="post">
+  <div id="main">
+    <div>
+    <button type="submit" formaction="approve_submit.php?approval_code=1">Accept</button>
+    <button type="submit" formaction="approve_submit.php?approval_code=0">Reject</button>
+    <input type="hidden" name="activity_id" value="<?=$activity_id?>" />
+    </div>
+    <div style="clear: both; padding-top: 1em;">
+    <textarea id="textarea" name="approval_comment" placeholder="Comments" cols=60 rows=6 maxlength=300 onkeyup="limitText()" onchange="limitText()" oninput="limitText()"></textarea>
+    <div id="text_status"></div>
+
+
+    <script type="text/javascript">
+      function limitText() {
+        textAreaObj = document.getElementById("textarea");
+        textMaxLength = textAreaObj.getAttribute("maxlength");
+        textLength = textAreaObj.value.length;
+        textStatus = document.getElementById("text_status");
+        textStatus.innerHTML = (textMaxLength - textLength) + " characters remaining" ;
+      };
+      limitText();
+    </script>
+    </div>
+    <br>
+    <hr>
+  </div>
+</form>
 
 <p><u>Activity</u></p>
 <?php
@@ -31,10 +86,12 @@ require_once 'models/pdo.php';
 require_once 'models/pdo.cdgfss.php';
 
 $pdoObj = new cdgfss_pdo();
-if ($pdoObj->listActivity_Details($activity_id)->rowCount() <= 0) {
+$listActivityStmt = $pdoObj->listActivity_Details($activity_id);
+if ($listActivityStmt->rowCount() <= 0) {
   exit("Activity ID $activity_id - contains no data");
 }
-$activityDetails =  $pdoObj->listActivity_Details($activity_id)->fetchAll()[0];
+$activityDetails =  $listActivityStmt->fetchAll()[0];
+// [0] is to retrieve the first row.  There should never be more than 1 row of data since activity_id is a unique primary key
 ?>
 <table id="mainTable">
   <tr><td>Teacher in charge</td><td><?=$activityDetails['teacher']?></td></tr>

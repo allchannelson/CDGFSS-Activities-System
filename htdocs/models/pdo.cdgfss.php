@@ -61,6 +61,14 @@ class cdgfss_pdo extends PdoModel {
     }
   }
   
+  private function prepareQuery($query, $input_array, $args = PDO::FETCH_ASSOC) {
+    $sth = $this->db->prepare($query);
+    $sth->setFetchMode($args);
+    $sth->execute($input_array);
+    return $sth;
+    // since the PDOStatement object works with FOREACH, passing the object is better than just fetchAll() output because I can do other operations like rowCount()
+  }
+  
   private function myQueryAssoc($args) {
     return $this->queryCheck($this->db->query($args, PDO::FETCH_ASSOC));
   }
@@ -167,7 +175,6 @@ class cdgfss_pdo extends PdoModel {
   }
 
   public function listActivity_AllStudents($activity_index, $args = PDO::FETCH_ASSOC) {
-    // Need to remake this function to use Prepare()
     $this->initSelect();
     $query = "
     SELECT `s`.`student_number`, `s`.`name_english`, `s`.`name_chinese`, concat(`syi`.`form`, `syi`.`class`, `syi`.`class_number`) as 'formclassnumber', `s`.`gender`
@@ -177,19 +184,21 @@ class cdgfss_pdo extends PdoModel {
      WHERE (`syi`.`student_index`, `syi`.`enrollment_year`) IN (
            SELECT `student_index`, `enrollment_year`
              FROM `activity_student`
-            WHERE `activity_index` = $activity_index)
+            WHERE `activity_index` = :activity_index)
   ORDER BY `syi`.`form` asc, `syi`.`class` asc, `syi`.`class_number` asc";
-    return $this->myQuery($query, $args);
+    return $this->prepareQuery($query, array(':activity_index' => $activity_index), $args);
   }
   
   public function listActivity_Details($activity_index, $args = PDO::FETCH_ASSOC) {
-    // Need to remake this function to use Prepare()
     $this->initSelect();
     $query = "
     SELECT `activity_index`, `teacher`, `unit`, `name_english`, `name_chinese`, `date`, `time`, `partner_name_english`, `partner_name_chinese`, `destination`
       FROM `activity`
-     WHERE activity_index = $activity_index";
-    return $this->myQuery($query, $args);
+     WHERE activity_index = :activity_index";
+    return $this->prepareQuery($query, array(':activity_index' => $activity_index), $args);
+  }
+  
+  public function approval_submit($activity_id, $approval_code, $approval_comment) {
   }
 }
 ?>
