@@ -1,9 +1,4 @@
 <?php
-
-/*
-Need to test:
-Adding new students.  Probably need a max(enrolled year) somewhere.
-*/
 class cdgfss_pdo extends PdoModel {
   private $dsn = "mysql:dbname=activity_prototype;host=localhost;charset=utf8";
 
@@ -48,23 +43,21 @@ class cdgfss_pdo extends PdoModel {
   
   private function queryCheck($args) {
     if ($args === false) {
-      // this is done because the query output is being processed by nested FOREACH,
-      // so it requires an array in an array for the FOREACH to not error out.
-      // return array(array("SQL Error"));
-      
-      // actually, the above just doesn't work all the time, need a better way to display an error... 
+      // actually, the above just doesn't work all the time, need a better way to display an error
+      // PDO::errorInfo() can be called to determine if there are errors
       return null;
       
-      // need to get more error details...
     } else {
       return $args;
     }
   }
   
   private function prepareQuery($query, $input_array, $args = PDO::FETCH_ASSOC) {
+    // both setFetchMode and execute returns boolean indicating success or failure, but I'm not handling them here
+    // if you need to check for errors, look at approve_submit.php, $errorArray = $stmt->errorInfo();
     $sth = $this->db->prepare($query);
     $sth->setFetchMode($args);
-    $sth->execute($input_array);
+    $sth->execute($input_array);  // this returns a boolean but it'll just disappear
     return $sth;
     // since the PDOStatement object works with FOREACH, passing the object is better than just fetchAll() output because I can do other operations like rowCount()
   }
@@ -102,7 +95,7 @@ class cdgfss_pdo extends PdoModel {
   
   public function reportActivity_AllActivities_AllStudents($args = PDO::FETCH_ASSOC) {
     $this->initSelect();
-    // column title is for debugging.  They are inaccessible from the PHP front-end.
+    // column title in SQL is for debugging.  They are inaccessible from the PHP front-end.
     // column title generated from columns_AllActivities_AllStudents()
     $query = "
       SELECT act.name_chinese as 'Activity CHI', act.name_english 'Activity ENG', act.date, act.teacher, s.name_chinese, s.name_english, CONCAT(syi.form, syi.class, syi.class_number) AS 'Class'
@@ -182,7 +175,7 @@ class cdgfss_pdo extends PdoModel {
       JOIN `student` `s`
         ON `s`.`student_index` = `syi`.`student_index`
      WHERE (`syi`.`student_index`, `syi`.`enrollment_year`) IN (
-           SELECT `student_index`, `enrollment_year`
+           SELECT `student_index`, `student_enrollment_year`
              FROM `activity_student`
             WHERE `activity_index` = :activity_index)
   ORDER BY `syi`.`form` asc, `syi`.`class` asc, `syi`.`class_number` asc";
@@ -199,6 +192,10 @@ class cdgfss_pdo extends PdoModel {
   }
   
   public function approval_submit($activity_id, $approval_code, $approval_comment) {
+    $this->initSubmit();
+    $query = "UPDATE `activity` SET `approval_code` = :approval_code, `approval_comment` = :approval_comment WHERE `activity`.`activity_index` = :activity_id";
+    return $this->prepareQuery($query, array(':activity_id' => $activity_id, ':approval_code' => $approval_code, ':approval_comment' => $approval_comment));
   }
+  
 }
 ?>
