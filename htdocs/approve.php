@@ -68,7 +68,10 @@
       function limitText() {
         textAreaObj = document.getElementById("textarea");
         textMaxLength = textAreaObj.getAttribute("maxlength");
-        textLength = textAreaObj.value.length;
+        // CRLF fix for newlines
+        textRealCharacters = textAreaObj.value.replace(/(\r\n|\r|\n)/g, "\r\n");
+        textLength = textRealCharacters.length;
+        
         textStatus = document.getElementById("text_status");
         textStatus.innerHTML = (textMaxLength - textLength) + " characters remaining" ;
       };
