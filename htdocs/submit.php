@@ -1,7 +1,9 @@
-
 <html>
 <body>
 <?php
+// This file really should be using the pdo.cdgfss.php class instead of creating its own connections, but this file was made before the
+// class was designed, so refactoring can be done later if necessary -- 15YS - 29062016
+
 $dbname = 'activity_prototype';
 $user = 'submit';
 $password = 'DqcJ3WeWWYQBTG6r';
@@ -26,12 +28,13 @@ function myQuery($pdo, $query, $msg = null) {
     if (isset($msg)) {
       echo "$msg<br>";
     }
-  } catch (PDFException $e){
+  } catch (PDOException $e){
     echo "Error: " . $e->getMessage();
   }
 }
 
 // *** isset checks are INSUFFICIENT!  They are all set but are ''
+// I'm not sure if I can confirm the above anymore.  I don't know how I tested this initially.  -- 15YS - 29062016
 if (isset($_POST['activity']['teacher']) &&
     isset($_POST['activity']['unit']) &&
     isset($_POST['activity']['name_english']) &&
@@ -47,12 +50,13 @@ if (isset($_POST['activity']['teacher']) &&
   $anc = $_POST['activity']['name_chinese'];
   $ad  = $_POST['activity']['date'];
   if ($_POST['activity']['name_english'] != "") {
-    // Input error checking required here, for all required boxes to be filled in.  Probably can implement JavaScript simple layer.
-    // INSERT INTO `activity` (`activity_index`, `activity_name_chinese`, `activity_name_english`) VALUES (NULL, NULL, 'Test');
-    $query = "INSERT INTO `activity_prototype`.`activity` (`teacher`, `unit`, `name_english`, `name_chinese`, `date`) VALUES ('$at', '$au', '$ane', '$anc', '$ad')";
-    // IF the above query has a syntax error, for whatever reason, it'll not error out at the moment.  Need to put in error checking for this.
-    
-    myQuery($pdo, $query, "Activity record submitted!");
+    $query = "INSERT INTO `activity_prototype`.`activity` (`teacher`, `unit`, `name_english`, `name_chinese`, `date`) VALUES (:at, :au, :ane, :anc, :ad)";
+    $stmt = $pdo->prepare($query);
+    // $stmt->setFetchMode($args);  // only if you need to change the FETCH mode.  Unnecessary for an INSERT
+    $stmt->execute(array(':at' => $at, ':au' => $au, ':ane' => $ane, ':anc' => $anc, ':ad' => $ad));
+    $count = $stmt->rowCount();
+    echo "$count rows inserted.  Activity Record Submitted.";
+    // no SQL error checking.  If necessary, call $stmt->errorInfo()
     
     $query = "SELECT last_insert_id();";
     $lastInsertID = $pdo->query($query)->fetch(PDO::FETCH_NUM)[0];
@@ -62,13 +66,11 @@ if (isset($_POST['activity']['teacher']) &&
 }
 
 if (isset($_POST['checkboxArray'])) {
-  // echo("Submitted!<br>");
   $query = "INSERT into `activity_prototype`.`activity_student` (`activity_index`, `student_index`, `student_enrollment_year`) VALUES ($lastInsertID, :student_index, :student_enrollment_year)";
   $stmt = $pdo->prepare($query);
   foreach($_POST['checkboxArray'] as $thisCheckbox) {
     $studentFields = explode(",",$thisCheckbox);
     $stmt->execute(array(':student_index' => $studentFields[0], ':student_enrollment_year' => $studentFields[1]));
-    // echo($thisCheckbox . "<br>");
   }
 } else {
   echo("No Students Entered!  Javascript validation bypassed.  Please disable Javascript blockers.");

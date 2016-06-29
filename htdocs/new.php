@@ -2,8 +2,8 @@
 <html>
 <head>
   <?php 
-    require 'models/pdo.php';
-    require 'models/pdo.cdgfss.php';
+    require_once 'models/pdo.php';
+    require_once 'models/pdo.cdgfss.php';
 
     $cdgfssDB = new cdgfss_pdo();
   ?>
