@@ -1,5 +1,7 @@
 <?php
-// I remade this class as OO, but it can probably just be a helper class and does not need to be instantiated...
+// I remade this class as OO.
+// After thinking about it for a while, the $message building sequence may have race conditions if more than one e-mail is being generated.
+// Best to keep it instantiated so each e-mail is its own object.
 
 require_once 'swift/swift_required.php';
 
@@ -57,17 +59,17 @@ class cdgfss_mail {
     $this->htmlbody .= "<br><hr><p><u>Students</u></p><table border=1 id='studentTable' style='td {border: thin solid red;}'><tr>";
     $this->textbody .= "** Students **\r\n\r\n";
     foreach ($activityStudentHeading as $field) {
-      $this->htmlbody .= "<td>$field</td>";
-      $this->textbody .= "$field	";
+      $this->htmlbody .= "<td>{$field}</td>";
+    $this->textbody .= "{$field}	";
     }
     $count = 0;
     foreach ($activityStudents as $row) {
-      $this->htmlbody .= $count%2==1?"<tr>":"<tr $this->alternateBGcolor>";
+      $this->htmlbody .= $count%2==1?"<tr>":"<tr {$this->alternateBGcolor}>";
       $this->textbody .= "\r\n";
       $count += 1;
       foreach ($row as $field) {
-        $this->htmlbody .= "<td>$field</td>";
-        $this->textbody .= "$field	";
+        $this->htmlbody .= "<td>{$field}</td>";
+      $this->textbody .= "{$field}	";
       }
       $this->htmlbody .= "</tr>";
       $this->textbody .= "\r\n";
@@ -108,6 +110,8 @@ class cdgfss_mail {
 
 
 TEXTBODY;
+// Heredoc closing identifier cannot have any other characters other than the identifier and semi-colon.
+// http://php.net/manual/en/language.types.string.php#language.types.string.syntax.heredoc
 
     $this->htmlbody = <<<"HTMLBODY"
 
@@ -124,6 +128,8 @@ TEXTBODY;
       <tr><td>Destination/Route</td><td>{$this->activityDetails['destination']}</td></tr>
     </table>
 HTMLBODY;
+// Heredoc closing identifier cannot have any other characters other than the identifier and semi-colon.
+// http://php.net/manual/en/language.types.string.php#language.types.string.syntax.heredoc
   }
 }
 ?>

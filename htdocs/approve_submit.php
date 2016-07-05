@@ -3,6 +3,7 @@
 <head>
 <?php 
   // (int) cast prevents invalid and non-numeric characters, prevents SQL injection
+  // The above is old-implementation artifacts.  approval_submit() uses Prepared Statement so it won't be vulnerable to SQL injection.
   if (isset($_REQUEST['activity_id'])) {
     $activity_id = (int)($_REQUEST['activity_id']);
   }
@@ -23,6 +24,7 @@
   $approval_code_meaning = "";
   
   switch($approval_code) {
+    // this needs to be changed.  Probably change to {main stage ##}{sub stage ###} = #####
     case 0:
       $approval_code_meaning = "Reject";
       break;
@@ -44,9 +46,12 @@ Comments:<br>
   // see http://www.unix.org.ua/orelly/java-ent/jenut/ch08_06.htm for full list of error codes
   if ($errorArray[0] == "00000") {
     echo ("$approval_code_meaning Submitted Successfully.");
+    // e-mail to author
+    // e-mail to approver
   } else {
-    echo ("SQLSTATE error code: {$errorArray[0]}<br>");
-    echo ("Driver error code: {$errorArray[1]}<br>");
+    echo ("System error.  Forward to technical support:<br><hr><br>");
+    echo ("SQLSTATE error code: {$errorArray[0]}<br><hr><br>");
+    echo ("Driver error code: {$errorArray[1]}<br><hr><br>");
     echo ("Driver error message: {$errorArray[2]}<br>");
   }
 ?>
