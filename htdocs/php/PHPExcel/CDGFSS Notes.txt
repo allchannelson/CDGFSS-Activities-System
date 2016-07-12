@@ -1,0 +1,7 @@
+PHPExcel 1.8.1.
+https://github.com/PHPOffice/PHPExcel/releases/tag/1.8.1
+Released May 2015
+
+With PHP7, looks like php_xml and php_zip are built-in.
+
+php_gd2 was enabled

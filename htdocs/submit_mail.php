@@ -11,7 +11,6 @@ require_once 'models/pdo.cdgfss.php';
 class cdgfss_mail {
   
   private $transport;
-
   private $mailer;
   private $activity_id;
   private $pdoObj;
@@ -63,6 +62,7 @@ class cdgfss_mail {
       $this->textbody .= "{$field}	";
     }
     $count = 0;
+
     foreach ($activityStudents as $row) {
       $this->htmlbody .= $count%2==1?"<tr>":"<tr {$this->alternateBGcolor}>";
       $this->textbody .= "\r\n";
@@ -82,7 +82,6 @@ class cdgfss_mail {
   private function generateMessage($emailInput) {
     $this->message = Swift_Message::newInstance('Activity - ' . $this->activityDetails['name_english'] . '/' . $this->activityDetails['name_chinese'])
       ->setFrom(array('eac_system@school.cdgfss.edu.hk' => 'EAC System'))
-      // ->setTo(array('t15ys@school.cdgfss.edu.hk'))
       ->setTo(array($emailInput))
       ->setBody($this->textbody)
       ->addPart($this->htmlbody, 'text/html')
