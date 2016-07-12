@@ -7,6 +7,8 @@ require_once 'swift/swift_required.php';
 
 require_once 'models/pdo.php';
 require_once 'models/pdo.cdgfss.php';
+// require_once dirname(__FILE__) . '/../Classes/PHPExcel.php';
+require_once 'php/PHPExcel/Classes/PHPExcel.php';
 
 class cdgfss_mail {
   
@@ -20,9 +22,8 @@ class cdgfss_mail {
   private $activityDetails;
   private $alternateBGcolor = "style='background: #DDD'";
 
-  public function __construct($email, $input) {
+  public function __construct() {
     $this->init();
-    $this->sendMail($email, $input);
   }
   
   private function init() {
@@ -33,22 +34,100 @@ class cdgfss_mail {
     $this->mailer = Swift_Mailer::newInstance($this->transport);
   }
   
-  private function sendMail($email, $input) {
-    // $input = activity_id
-    $this->setActivityId($input);
+  public function sendMail($email, $activity_id) {
+    $this->sendMailInit($email, $activity_id);
+    $result = $this->mailer->send($this->message);
+  }
+  
+  public function TEST_sendMailPlainTextAttachment($email, $activity_id) {
+    $this->sendMailInit($email, $activity_id);
+    $this->generateAttachment('Hello World!', 'text.txt', 'text/plain');
+    $result = $this->mailer->send($this->message);
+  }
+  
+  public function TEST_sendMailXLSXAttachment($email, $activity_id) {
+    $this->sendMailInit($email, $activity_id);
+    $this->generateTestAttachment();
+    $result = $this->mailer->send($this->message);
+  }
+  
+  public function sendMailWithAttachment($email, $activity_id, $attachmentData) {
+    $this->sendMailInit($email, $activity_id);
+    $this->generateAttachment($attachmentData);
+    $result = $this->mailer->send($this->message);
+  }
+  
+  private function sendMailInit($email, $activity_id) {
+    $this->setActivityId($activity_id);
     $this->initDb();
     $this->generateActivityDetails();
     $this->generateStudentDetails();
     $this->generateMessage($email);
-    $result = $this->mailer->send($this->message);
   }
 
-  private function setActivityId($input) {
-    $this->activity_id = (int)$input;
+  private function setActivityId($activity_id) {
+    // I'm not going to do thorough error checking.  activity_id is setup as an auto-incrementing integer in the database
+    // PDO calls are using prepared statements, so this (int) cast isn't going to add much in terms of preventing SQL injection.
+    // If someone changes the activity_id to non-integers, then it'll cause problems... but that's a pretty major change and
+    // will probably break a ton of other things
+    $this->activity_id = (int)$activity_id;
   }
   
   private function initDb() {
     $this->pdoObj = new cdgfss_pdo();
+  }
+  
+  private function generateAttachment($inputData, $inputFileName = 'download.xlsx', $inputContentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+    $this->message->attach(Swift_Attachment::newInstance()
+      ->setFilename($inputFileName)
+      ->setContentType($inputContentType)
+      ->setBody($inputData)
+    );
+  }
+  
+  private function generateTestAttachment() {
+    $objPHPExcel = new PHPExcel();
+    
+    // Test Data is directly pulled from the PHPExcel examples, so I'm not going to bother changing them.
+
+    // Set document properties
+    $objPHPExcel->getProperties()->setCreator("Maarten Balliauw")
+                   ->setLastModifiedBy("Maarten Balliauw")
+                   ->setTitle("Office 2007 XLSX Test Document")
+                   ->setSubject("Office 2007 XLSX Test Document")
+                   ->setDescription("Test document for Office 2007 XLSX, generated using PHP classes.")
+                   ->setKeywords("office 2007 openxml php")
+                   ->setCategory("Test result file");
+
+
+    // Add some data
+    $objPHPExcel->setActiveSheetIndex(0)
+                ->setCellValue('A1', 'Hello')
+                ->setCellValue('B2', 'world!')
+                ->setCellValue('C1', 'Hello')
+                ->setCellValue('D2', 'world!');
+
+    // Miscellaneous glyphs, UTF-8
+    $objPHPExcel->setActiveSheetIndex(0)
+                ->setCellValue('A4', 'Miscellaneous glyphs')
+                ->setCellValue('A5', 'éàèùâêîôûëïüÿäöüç');
+
+    // Rename worksheet
+    $objPHPExcel->getActiveSheet()->setTitle('Simple');
+
+    // Set active sheet index to the first sheet, so Excel opens this as the first sheet
+    $objPHPExcel->setActiveSheetIndex(0);
+    $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+    ob_start();
+    $objWriter->save('php://output');
+    $data = ob_get_contents();
+    ob_end_clean();
+    
+    $this->message->attach(Swift_Attachment::newInstance()
+      ->setFilename('test.xlsx')
+      ->setContentType('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+      ->setBody($data)
+    );
   }
   
   private function generateStudentDetails() {
