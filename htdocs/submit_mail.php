@@ -21,21 +21,11 @@ class cdgfss_mail {
   private $activityDetails;
   private $alternateBGcolor = "style='background: #DDD'";
 
-  public function __construct($input) {
+  public function __construct($email, $input) {
     $this->init();
-    $this->sendMail($input);
+    $this->sendMail($email, $input);
   }
   
-  private function sendMail($input) {
-    // $input = activity_id
-    $this->setActivityId($input);
-    $this->initDb();
-    $this->generateActivityDetails();
-    $this->generateStudentDetails();
-    $this->generateMessage();
-    $result = $this->mailer->send($this->message);
-  }
-
   private function init() {
     $this->transport = Swift_SmtpTransport::newInstance('smtp.gmail.com', 465, "ssl")
       ->setUsername('eac_system@school.cdgfss.edu.hk')
@@ -44,6 +34,16 @@ class cdgfss_mail {
     $this->mailer = Swift_Mailer::newInstance($this->transport);
   }
   
+  private function sendMail($email, $input) {
+    // $input = activity_id
+    $this->setActivityId($input);
+    $this->initDb();
+    $this->generateActivityDetails();
+    $this->generateStudentDetails();
+    $this->generateMessage($email);
+    $result = $this->mailer->send($this->message);
+  }
+
   private function setActivityId($input) {
     $this->activity_id = (int)$input;
   }
@@ -60,7 +60,7 @@ class cdgfss_mail {
     $this->textbody .= "** Students **\r\n\r\n";
     foreach ($activityStudentHeading as $field) {
       $this->htmlbody .= "<td>{$field}</td>";
-    $this->textbody .= "{$field}	";
+      $this->textbody .= "{$field}	";
     }
     $count = 0;
     foreach ($activityStudents as $row) {
@@ -69,7 +69,7 @@ class cdgfss_mail {
       $count += 1;
       foreach ($row as $field) {
         $this->htmlbody .= "<td>{$field}</td>";
-      $this->textbody .= "{$field}	";
+        $this->textbody .= "{$field}	";
       }
       $this->htmlbody .= "</tr>";
       $this->textbody .= "\r\n";
@@ -79,10 +79,11 @@ class cdgfss_mail {
     $this->htmlbody .= "</table>";
   }
 
-  private function generateMessage() {
+  private function generateMessage($emailInput) {
     $this->message = Swift_Message::newInstance('Activity - ' . $this->activityDetails['name_english'] . '/' . $this->activityDetails['name_chinese'])
       ->setFrom(array('eac_system@school.cdgfss.edu.hk' => 'EAC System'))
-      ->setTo(array('t15ys@school.cdgfss.edu.hk'))
+      // ->setTo(array('t15ys@school.cdgfss.edu.hk'))
+      ->setTo(array($emailInput))
       ->setBody($this->textbody)
       ->addPart($this->htmlbody, 'text/html')
       ;

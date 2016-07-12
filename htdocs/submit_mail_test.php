@@ -3,5 +3,5 @@
   
   // $asdf = new cdgfss_mail();
   // $asdf->sendMail(1);
-  $asdf = new cdgfss_mail(1);
+  $asdf = new cdgfss_mail('t15ys@school.cdgfss.edu.hk',1);
 ?>
