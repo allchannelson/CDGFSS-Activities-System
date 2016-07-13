@@ -3,6 +3,13 @@
 // After thinking about it for a while, the $message building sequence may have race conditions if more than one e-mail is being generated.
 // Best to keep it instantiated so each e-mail is its own object.
 
+// ** Notes on Attachment functions **
+// They have general names, but are actually very specific.  generateAttachments() is a generic method that depends on initializations done in
+// generateActivityDetails() and generateStudentDetails(), which stores the data within the object's private variables
+
+// I really should have made my own class to store the activity related data instead of attaching it to this mail class as private variables...
+// In its current form it is going to be ugly if new types of data are needed
+
 require_once 'swift/swift_required.php';
 
 require_once 'models/pdo.php';
@@ -15,11 +22,17 @@ class cdgfss_mail {
   private $transport;
   private $mailer;
   private $activity_id;
+  private $email;
   private $pdoObj;
   private $textbody;
   private $htmlbody;
+  private $excelObj;
+  private $activityStudentHeading;
+  private $activityStudents; // this is a PDOStatement object.  be careful of using a foreach on this because it will move the cursor, best to not use this at all.
+  private $activityStudentsArray;  // this is a fetchAll() of the above PDO Statement object.  Perform foreach loops on this variable instead.
   private $message;
   private $activityDetails;
+
   private $alternateBGcolor = "style='background: #DDD'";
 
   public function __construct() {
@@ -34,11 +47,6 @@ class cdgfss_mail {
     $this->mailer = Swift_Mailer::newInstance($this->transport);
   }
   
-  public function sendMail($email, $activity_id) {
-    $this->sendMailInit($email, $activity_id);
-    $result = $this->mailer->send($this->message);
-  }
-  
   public function TEST_sendMailPlainTextAttachment($email, $activity_id) {
     $this->sendMailInit($email, $activity_id);
     $this->generateAttachment('Hello World!', 'text.txt', 'text/plain');
@@ -51,18 +59,25 @@ class cdgfss_mail {
     $result = $this->mailer->send($this->message);
   }
   
-  public function sendMailWithAttachment($email, $activity_id, $attachmentData) {
+  public function sendMail($email, $activity_id) {
     $this->sendMailInit($email, $activity_id);
-    $this->generateAttachment($attachmentData);
+    $result = $this->mailer->send($this->message);
+  }
+  
+  public function sendMailWithAttachment($email, $activity_id) {
+    $this->sendMailInit($email, $activity_id);
+    $this->generateExcelObject();
+    $this->generateAttachments();
     $result = $this->mailer->send($this->message);
   }
   
   private function sendMailInit($email, $activity_id) {
     $this->setActivityId($activity_id);
+    $this->setEmail($email);
     $this->initDb();
     $this->generateActivityDetails();
     $this->generateStudentDetails();
-    $this->generateMessage($email);
+    $this->generateMessage();
   }
 
   private function setActivityId($activity_id) {
@@ -73,15 +88,107 @@ class cdgfss_mail {
     $this->activity_id = (int)$activity_id;
   }
   
+  private function setEmail($email) {
+    $this->email = $email;
+  }
+
   private function initDb() {
     $this->pdoObj = new cdgfss_pdo();
   }
   
-  private function generateAttachment($inputData, $inputFileName = 'download.xlsx', $inputContentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+  private function generateExcelObject() {
+    $this->excelObj = new PHPExcel();
+    
+    $this->excelObj->getProperties()->setCreator("CDGFSS")
+                   ->setLastModifiedBy("CDGFSS")
+                   ; // most of the other properties are not easily visible
+                   
+    // Generate Activity Details
+    $this->excelObj->setActiveSheetIndex(0)
+                ->setCellValue('A1', "Activity ID:")
+                ->setCellValue('B1', $this->activity_id)
+                ->setCellValue('A2', "Teacher in charge:")
+                ->setCellValue('B2', $this->activityDetails['teacher'])
+                ->setCellValue('A3', "Participating Unit:")
+                ->setCellValue('B3', $this->activityDetails['unit'])
+                ->setCellValue('A4', "Name of Activity / Competition (ENG):")
+                ->setCellValue('B4', $this->activityDetails['name_english'])
+                ->setCellValue('A5', "Name of Activity / Competition (CHI):")
+                ->setCellValue('B5', $this->activityDetails['name_chinese'])
+                ->setCellValue('A6', "Date:")
+                ->setCellValue('B6', $this->activityDetails['date'])
+                ->setCellValue('A7', "Time:")
+                ->setCellValue('B7', $this->activityDetails['time'])
+                ->setCellValue('A8', "Partner Organization (ENG):")
+                ->setCellValue('B8', $this->activityDetails['partner_name_english'])
+                ->setCellValue('A9', "Partner Organization (CHI):")
+                ->setCellValue('B9', $this->activityDetails['partner_name_chinese'])
+                ->setCellValue('A10', "Destination/Route:")
+                ->setCellValue('B10', $this->activityDetails['destination'])
+                ;
+                
+    // Generate Activity Students
+    $counter = 0; // setCellValueByColumnAndRow() has column A = column 0
+    $nextRow = 12; // leaving a blank row after the activity details.  Can be increased if necessary.
+    foreach ($this->activityStudentHeading as $field) {
+      $this->excelObj->setActiveSheetIndex(0)->setCellValueByColumnAndRow($counter, $nextRow, $field);
+      $counter++;
+    }
+    $nextRow++;
+    
+    foreach ($this->activityStudentsArray as $row) {
+      $counter = 0;
+      foreach ($row as $field) {
+        $this->excelObj->setActiveSheetIndex(0)->setCellValueByColumnAndRow($counter, $nextRow, $field);
+        $counter++;
+      }
+      $nextRow++;
+    }
+    
+    // Generate the student list again on a separate sheet
+    $nextRow = 0;
+    $this->excelObj->createSheet(1);
+    foreach ($this->activityStudentsArray as $row) {
+      $counter = 0;
+      foreach ($row as $field) {
+        $this->excelObj->setActiveSheetIndex(1)->setCellValueByColumnAndRow($counter, $nextRow, $field);
+        $counter++;
+      }
+      $nextRow++;
+    }
+
+
+    // set all columns to autosize
+    foreach(range('A','Z') as $columnID) {
+        $this->excelObj->setActiveSheetIndex(0)->getColumnDimension($columnID)
+            ->setAutoSize(true);
+        $this->excelObj->setActiveSheetIndex(1)->getColumnDimension($columnID)
+            ->setAutoSize(true);
+    }
+    
+    $this->excelObj->setActiveSheetIndex(0)->setTitle('Activity Details');
+    $this->excelObj->setActiveSheetIndex(1)->setTitle('Students Only');
+    $this->excelObj->setActiveSheetIndex(0);
+  }
+  
+  private function generateAttachments() {
+    ob_start();
+    $objWriter = PHPExcel_IOFactory::createWriter($this->excelObj, 'Excel2007');
+    $objWriter->save('php://output');
+    $data = ob_get_contents();
+    ob_end_clean();
+    
+    // regex for stripping out invalid characters:
+    // http://stackoverflow.com/a/2021729/3715973
+    
+    $filename = "{$this->activityDetails['name_english']} - {$this->activityDetails['name_chinese']}";
+    $filename = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $filename);
+    $filename = mb_ereg_replace("([\.]{2,})", '', $filename);
+    
     $this->message->attach(Swift_Attachment::newInstance()
-      ->setFilename($inputFileName)
-      ->setContentType($inputContentType)
-      ->setBody($inputData)
+      ->setFilename("$filename.xlsx")
+      ->setContentType('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+      ->setBody($data)
     );
   }
   
@@ -117,8 +224,9 @@ class cdgfss_mail {
 
     // Set active sheet index to the first sheet, so Excel opens this as the first sheet
     $objPHPExcel->setActiveSheetIndex(0);
-    $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+    
     ob_start();
+    $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
     $objWriter->save('php://output');
     $data = ob_get_contents();
     ob_end_clean();
@@ -130,38 +238,10 @@ class cdgfss_mail {
     );
   }
   
-  private function generateStudentDetails() {
-    $activityStudentHeading = $this->pdoObj->columns_Activity_AllStudents();
-    $activityStudents = $this->pdoObj->listActivity_AllStudents($this->activity_id);
-
-    $this->htmlbody .= "<br><hr><p><u>Students</u></p><table border=1 id='studentTable' style='td {border: thin solid red;}'><tr>";
-    $this->textbody .= "** Students **\r\n\r\n";
-    foreach ($activityStudentHeading as $field) {
-      $this->htmlbody .= "<td>{$field}</td>";
-      $this->textbody .= "{$field}	";
-    }
-    $count = 0;
-
-    foreach ($activityStudents as $row) {
-      $this->htmlbody .= $count%2==1?"<tr>":"<tr {$this->alternateBGcolor}>";
-      $this->textbody .= "\r\n";
-      $count += 1;
-      foreach ($row as $field) {
-        $this->htmlbody .= "<td>{$field}</td>";
-        $this->textbody .= "{$field}	";
-      }
-      $this->htmlbody .= "</tr>";
-      $this->textbody .= "\r\n";
-    }
-
-    $this->htmlbody .= "</tr>";
-    $this->htmlbody .= "</table>";
-  }
-
-  private function generateMessage($emailInput) {
+  private function generateMessage() {
     $this->message = Swift_Message::newInstance('Activity - ' . $this->activityDetails['name_english'] . '/' . $this->activityDetails['name_chinese'])
       ->setFrom(array('eac_system@school.cdgfss.edu.hk' => 'EAC System'))
-      ->setTo(array($emailInput))
+      ->setTo(array($this->email))
       ->setBody($this->textbody)
       ->addPart($this->htmlbody, 'text/html')
       ;
@@ -209,6 +289,39 @@ TEXTBODY;
 HTMLBODY;
 // Heredoc closing identifier cannot have any other characters other than the identifier and semi-colon.
 // http://php.net/manual/en/language.types.string.php#language.types.string.syntax.heredoc
+  }
+  
+  private function generateStudentDetails() {
+    $this->activityStudentHeading = $this->pdoObj->columns_Activity_AllStudents();
+    $this->activityStudents = $this->pdoObj->listActivity_AllStudents($this->activity_id);
+    $this->activityStudentsArray = $this->activityStudents->fetchAll(); // I have to do this because the PDO Statement will iterate and the cursor cannot be reset
+
+    $this->htmlbody .= "<br><hr><p><u>Students</u></p><table border=1 id='studentTable' style='td {border: thin solid red;}'><tr>";
+    $this->textbody .= "** Students **\r\n\r\n";
+    foreach ($this->activityStudentHeading as $field) {
+      $this->htmlbody .= "<td>{$field}</td>";
+      $this->textbody .= "{$field}	";
+    }
+    $count = 0;
+
+    // the foreach used to be directly on the PDOStatement object, but because I need to iterate over the data multiple times, I had to perform
+    // a fetchAll() above and store the data; iterating on the PDOStatement will cause the cursor to move and I cannot reset it.
+    // a fetchAll() also moves the cursor too.
+    foreach ($this->activityStudentsArray as $row) {
+      // the $count is simply alternating the alternate BG color style since CSS blocks doesn't work in emails
+      $this->htmlbody .= $count%2==1?"<tr>":"<tr {$this->alternateBGcolor}>";
+      $this->textbody .= "\r\n";
+      $count += 1;
+      foreach ($row as $field) {
+        $this->htmlbody .= "<td>{$field}</td>";
+        $this->textbody .= "{$field}	";
+      }
+      $this->htmlbody .= "</tr>";
+      $this->textbody .= "\r\n";
+    }
+
+    $this->htmlbody .= "</tr>";
+    $this->htmlbody .= "</table>";
   }
 }
 ?>
