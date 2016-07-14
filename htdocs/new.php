@@ -4,7 +4,6 @@
   <?php 
     require_once 'models/pdo.php';
     require_once 'models/pdo.cdgfss.php';
-
     $cdgfssDB = new cdgfss_pdo();
   ?>
   <script src="https://code.jquery.com/jquery-1.12.3.min.js"
