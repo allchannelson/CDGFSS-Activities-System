@@ -101,7 +101,7 @@ class cdgfss_mail {
     
     $this->excelObj->getProperties()->setCreator("CDGFSS")
                    ->setLastModifiedBy("CDGFSS")
-                   ; // most of the other properties are not easily visible
+                   ; // most of the other properties are not easily visible; not going to bother
                    
     // Generate Activity Details
     $this->excelObj->setActiveSheetIndex(0)
@@ -136,25 +136,18 @@ class cdgfss_mail {
     }
     $nextRow++;
     
-    foreach ($this->activityStudentsArray as $row) {
-      $counter = 0;
-      foreach ($row as $field) {
-        $this->excelObj->setActiveSheetIndex(0)->setCellValueByColumnAndRow($counter, $nextRow, $field);
-        $counter++;
-      }
-      $nextRow++;
-    }
-    
-    // Generate the student list again on a separate sheet
-    $nextRow = 0;
+    // Generates Student List below Activity Details and also a separate sheet with Students only.
+    $nextStudentOnlyRow = 1;  // Rows start at 1, but Columns start at 0.
     $this->excelObj->createSheet(1);
     foreach ($this->activityStudentsArray as $row) {
       $counter = 0;
       foreach ($row as $field) {
-        $this->excelObj->setActiveSheetIndex(1)->setCellValueByColumnAndRow($counter, $nextRow, $field);
+        $this->excelObj->setActiveSheetIndex(0)->setCellValueByColumnAndRow($counter, $nextRow, $field);
+        $this->excelObj->setActiveSheetIndex(1)->setCellValueByColumnAndRow($counter, $nextStudentOnlyRow, $field);
         $counter++;
       }
       $nextRow++;
+      $nextStudentOnlyRow++;
     }
 
 
@@ -252,7 +245,7 @@ class cdgfss_mail {
     if ($listActivityStmt->rowCount() <= 0) {
       exit(); // this can happen if the activity_id is invalid
     }
-    $this->activityDetails = $listActivityStmt->fetchAll()[0];
+    $this->activityDetails = $listActivityStmt->fetchAll()[0];  // This moves the cursor on the PDOStatement object and it will return no results at future calls
 
     $this->textbody = <<<"TEXTBODY"
     -- Activity ID: $this->activity_id --
@@ -295,6 +288,7 @@ HTMLBODY;
     $this->activityStudentHeading = $this->pdoObj->columns_Activity_AllStudents();
     $this->activityStudents = $this->pdoObj->listActivity_AllStudents($this->activity_id);
     $this->activityStudentsArray = $this->activityStudents->fetchAll(); // I have to do this because the PDO Statement will iterate and the cursor cannot be reset
+    // This causes the activityStudents PDOStatement cursor to be moved to the end
 
     $this->htmlbody .= "<br><hr><p><u>Students</u></p><table border=1 id='studentTable' style='td {border: thin solid red;}'><tr>";
     $this->textbody .= "** Students **\r\n\r\n";
@@ -306,7 +300,7 @@ HTMLBODY;
 
     // the foreach used to be directly on the PDOStatement object, but because I need to iterate over the data multiple times, I had to perform
     // a fetchAll() above and store the data; iterating on the PDOStatement will cause the cursor to move and I cannot reset it.
-    // a fetchAll() also moves the cursor too.
+    // a fetchAll() also moves the cursor on the PDOStatement, but I will have an array to work with after.
     foreach ($this->activityStudentsArray as $row) {
       // the $count is simply alternating the alternate BG color style since CSS blocks doesn't work in emails
       $this->htmlbody .= $count%2==1?"<tr>":"<tr {$this->alternateBGcolor}>";

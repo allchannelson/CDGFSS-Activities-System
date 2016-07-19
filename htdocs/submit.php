@@ -59,11 +59,11 @@ if (isset($_POST['activity']['teacher']) &&
     // $stmt->setFetchMode($args);  // only if you need to change the FETCH mode.  Unnecessary for an INSERT
     $stmt->execute(array(':at' => $at, ':au' => $au, ':ane' => $ane, ':anc' => $anc, ':ad' => $ad));
     $count = $stmt->rowCount();
-    echo "$count rows inserted.  Activity Record Submitted.<br>";
     // no SQL error checking.  If necessary, call $stmt->errorInfo() and check the returned array for errors.
     
-    $query = "SELECT last_insert_id();";
-    $lastInsertID = $pdo->query($query)->fetch(PDO::FETCH_NUM)[0];
+    $lastInsertID = $pdo->lastInsertId();
+
+    echo "$count rows inserted.  Activity Record Submitted -- ID: $lastInsertID <br>";
   }
 } else {
   echo ("Missing activity essential data!  Javascript validation bypassed.  Please disable Javascript blockers.");

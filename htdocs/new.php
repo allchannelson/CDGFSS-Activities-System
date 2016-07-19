@@ -22,6 +22,9 @@
   function resetForm() {
     /* This function may have redundant parts.  studentFilter() was added when I figured out to setup an anonymous function to have the function
        trigger after the reset.  Some of the forms may redundantly reset fields */
+    
+    // I really should refactor this function and validateForm()... but I don't have the time to go though it.
+    // If new fields are added, both functions need to be updated to validate properly
     setTimeout(function() {
       validateForm.onChangeBinding = false;
       
@@ -31,6 +34,7 @@
       var d=document.forms["form"]["activity[name_chinese]"];
       var e=document.forms["form"]["activity[date]"];
       var f=document.forms["form"]["datepicker"];
+      var g=document.forms["form"]["email"];
 
       submitAlertStudentsHTML = document.getElementById("submitAlertStudents");
       submitAlertHTML = document.getElementById("submitAlert");
@@ -43,6 +47,7 @@
       resethighlight(c);
       resethighlight(d);
       resethighlight(e);
+      resethighlight(g);
       
       unbind(a);
       unbind(b);
@@ -50,6 +55,7 @@
       unbind(d);
       unbind(e);
       unbind(f);
+      unbind(g);
       
       studentArray = document.getElementsByName("checkboxArray[]");
       for (i = 0; i < studentArray.length; i++) {
@@ -77,6 +83,7 @@
     var d=document.forms["form"]["activity[name_chinese]"];
     var e=document.forms["form"]["activity[date]"];
     var f=document.forms["form"]["datepicker"];
+    var g=document.forms["form"]["activity[email]"];
     
     if (f.value==="") {e.value="";}
     // activity[date] is a hidden field, populated by the datepicker
@@ -88,6 +95,7 @@
     resethighlight(c);
     resethighlight(d);
     resethighlight(e);
+    resethighlight(g);
     // f element has no label to reset
     
     if (typeof validateForm.onChangeBinding == 'undefined' || validateForm.onChangeBinding == false) {
@@ -100,6 +108,7 @@
       myBind(d);
       myBind(e);
       myBind(f);
+      myBind(g);
       studentArray = document.getElementsByName("checkboxArray[]");
       for (i = 0; i < studentArray.length; i++) {
         myBind(studentArray[i]);
@@ -111,7 +120,9 @@
         c.value=="" ||
         d.value=="" ||
         e.value=="" ||
-        f.value=="") {
+        f.value=="" ||
+        g.value==""
+        ) {
       returnValue = false;
       submitAlertHTML.innerHTML = "Please complete following fields: "
       if (a.value=="") {
@@ -128,6 +139,9 @@
       }
       if (e.value=="") {
         highlightRed(e);
+      }
+      if (g.value=="") {
+        highlightRed(g);
       }
       // f element is a hidden input, so no label exists
       submitAlertHTML.innerHTML = submitAlertHTML.innerHTML.slice(0, -2);  // Removing the trailing ", "
@@ -451,6 +465,8 @@
 <input type="text" name="activity[partner_name_chinese]" maxlength=100 /><br>
 <div class="label">Destination/Route:</div>
 <input type="text" name="activity[destination]" maxlength=100 /><br>
+<div class="mandatory label">Email</div>
+<input type="text" name="activity[email]" maxlength=100 /><br>
 
 <span class="mandatory"></span><span style="color: red;"> Mandatory</span>
 <hr>
