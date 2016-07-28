@@ -6,7 +6,7 @@
 
 $dbname = 'activity_prototype';
 $user = 'submit';
-$password = 'DqcJ3WeWWYQBTG6r';
+$password = '5Vstnm9Db2Wbuwhu';
 $dsn = "mysql:dbname=$dbname;host=localhost;charset=utf8";
 
 require_once 'submit_mail.php';

@@ -1,0 +1,36 @@
+# Privileges for `pma`@`localhost`
+
+GRANT USAGE ON *.* TO 'pma'@'localhost' IDENTIFIED BY PASSWORD '*B5B0257ACC2AD21507E74E6FB40CBC08DD5CB271';
+
+GRANT SELECT, INSERT, UPDATE, DELETE, EXECUTE ON `phpmyadmin`.* TO 'pma'@'localhost';
+
+
+# Privileges for `root`@`127.0.0.1`
+
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'127.0.0.1' IDENTIFIED BY PASSWORD '*B5B0257ACC2AD21507E74E6FB40CBC08DD5CB271' WITH GRANT OPTION;
+
+
+# Privileges for `root`@`::1`
+
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'::1' IDENTIFIED BY PASSWORD '*B5B0257ACC2AD21507E74E6FB40CBC08DD5CB271' WITH GRANT OPTION;
+
+
+# Privileges for `root`@`localhost`
+
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY PASSWORD '*B5B0257ACC2AD21507E74E6FB40CBC08DD5CB271' WITH GRANT OPTION;
+
+GRANT PROXY ON ''@'%' TO 'root'@'localhost' WITH GRANT OPTION;
+
+
+# Privileges for `select_only`@`localhost`
+
+GRANT USAGE ON *.* TO 'select_only'@'localhost' IDENTIFIED BY PASSWORD '*B1791F1402A76FD013E094DDCF77875456B364D4';
+
+GRANT SELECT ON `activity\_prototype`.* TO 'select_only'@'localhost';
+
+
+# Privileges for `submit`@`localhost`
+
+GRANT USAGE ON *.* TO 'submit'@'localhost' IDENTIFIED BY PASSWORD '*49E7D6A5429D90E1D2EE779E37C136E5831B9A96';
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON `activity_prototype`.* TO 'submit'@'localhost';

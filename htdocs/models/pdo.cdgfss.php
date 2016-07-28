@@ -6,7 +6,7 @@ class cdgfss_pdo extends PdoModel {
   private $select_only_password = 'xBX8swTSrGawmB5r'; // dev 15ys
 
   private $submit_user = 'submit';
-  private $submit_password = 'DqcJ3WeWWYQBTG6r'; // dev 15ys
+  private $submit_password = '5Vstnm9Db2Wbuwhu'; // dev 15ys
   
   private $initSelect = false;
   private $initSubmit = false;
