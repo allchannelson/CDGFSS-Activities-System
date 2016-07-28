@@ -12,6 +12,7 @@ $dsn = "mysql:dbname=$dbname;host=localhost;charset=utf8";
 require_once 'submit_mail.php';
 $cdgfssEmail = new cdgfss_mail();
 $email = 't15ys@school.cdgfss.edu.hk';
+$testEmail = 't15ys@school.cdgfss.edu.hk'; // Comment this variable to disable test email
 
 function e($arg_1) {
    echo(htmlentities($arg_1));
@@ -37,17 +38,22 @@ function myQuery($pdo, $query, $msg = null) {
   }
 }
 
-// *** isset checks are INSUFFICIENT!  They are all set but are ''
-// I'm not sure if I can confirm the above anymore.  I don't know how I tested this initially.  -- 15YS - 29062016
+// Extremely primitive and basic validation.  It only checks to see if the fields are set.
+// DB Queries are all Prepared statements so SQL injection does not need to be checked with data.
+
+
+// [VALIDATION]
 if (isset($_POST['activity']['teacher']) &&
     isset($_POST['activity']['unit']) &&
     isset($_POST['activity']['name_english']) &&
     isset($_POST['activity']['name_chinese']) &&
-    isset($_POST['activity']['date'])) {
+    isset($_POST['activity']['date']) &&
+    isset($_POST['activity']['email'])) {
   foreach ($_POST['activity'] as &$postItem) {
     $postItem = trim($postItem);
   }
   unset($postItem);
+  $email = $_POST['activity']['email'];
   $at  = $_POST['activity']['teacher'];
   $au  = $_POST['activity']['unit'];
   $ane = $_POST['activity']['name_english'];
@@ -77,6 +83,7 @@ if (isset($_POST['checkboxArray'])) {
   // Since each student is a separate query execution, this takes a bit more than 30 seconds to finish if all of 2015's 903 students are added to an activity.
   // Will setup a progress bar to indicate this:
   // http://www.htmlgoodies.com/beyond/php/show-progress-report-for-long-running-php-scripts.html
+  
   foreach($_POST['checkboxArray'] as $thisCheckbox) {
     $studentFields = explode(",",$thisCheckbox);
     $stmt->execute(array(':student_index' => $studentFields[0], ':student_enrollment_year' => $studentFields[1]));
@@ -84,6 +91,9 @@ if (isset($_POST['checkboxArray'])) {
 
   echo "E-mail record sent to $email";
   $cdgfssEmail->sendMailWithAttachment($email, $lastInsertID);
+  if (isset($testEmail)) {
+    $cdgfssEmail->sendMailWithAttachment($testEmail, $lastInsertID);
+  }
 } else {
   echo("No Students Entered!  Javascript validation bypassed.  Please disable Javascript blockers.");
   exit();

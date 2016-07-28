@@ -35,6 +35,10 @@
       var e=document.forms["form"]["activity[date]"];
       var f=document.forms["form"]["datepicker"];
       var g=document.forms["form"]["email"];
+      
+      /* server side validation also needs to be added in submit.php 
+         see [VALIDATION]
+      */
 
       submitAlertStudentsHTML = document.getElementById("submitAlertStudents");
       submitAlertHTML = document.getElementById("submitAlert");
