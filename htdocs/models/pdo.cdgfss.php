@@ -3,10 +3,10 @@ class cdgfss_pdo extends PdoModel {
   private $dsn = "mysql:dbname=activity_prototype;host=localhost;charset=utf8";
 
   private $select_only_user = 'select_only';
-  private $select_only_password = 'xBX8swTSrGawmB5r'; // dev 15ys
+  private $select_only_password = '4NdBnLQWG7QDfr8x'; // dev 15ys
 
   private $submit_user = 'submit';
-  private $submit_password = '5Vstnm9Db2Wbuwhu'; // dev 15ys
+  private $submit_password = 'bKKZbbL2HDNErZtq'; // dev 15ys
   
   private $initSelect = false;
   private $initSubmit = false;

@@ -21,16 +21,18 @@ GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY PASSWORD '*B5B02
 
 GRANT PROXY ON ''@'%' TO 'root'@'localhost' WITH GRANT OPTION;
 
+GRANT PROXY ON ''@'%' TO 'root'@'localhost' WITH GRANT OPTION;
+
 
 # Privileges for `select_only`@`localhost`
 
-GRANT USAGE ON *.* TO 'select_only'@'localhost' IDENTIFIED BY PASSWORD '*B1791F1402A76FD013E094DDCF77875456B364D4';
+GRANT USAGE ON *.* TO 'select_only'@'localhost' IDENTIFIED BY PASSWORD '*1E6983C4E525B595D84D62773BA985989BD86E6D';
 
 GRANT SELECT ON `activity\_prototype`.* TO 'select_only'@'localhost';
 
 
 # Privileges for `submit`@`localhost`
 
-GRANT USAGE ON *.* TO 'submit'@'localhost' IDENTIFIED BY PASSWORD '*49E7D6A5429D90E1D2EE779E37C136E5831B9A96';
+GRANT USAGE ON *.* TO 'submit'@'localhost' IDENTIFIED BY PASSWORD '*50D900AE52759D9D439CB9B8506C98E9A5415D96';
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON `activity_prototype`.* TO 'submit'@'localhost';
