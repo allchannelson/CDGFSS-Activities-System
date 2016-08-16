@@ -24,7 +24,9 @@
   $approval_code_meaning = "";
   
   switch($approval_code) {
-    // this needs to be changed.  Probably change to {main stage ##}{sub stage ###} = #####
+    // This can be expanded to accept all sorts of codes.
+    // One option is {main stage ##}{sub stage ###} = #####
+    // Once basic 0/1 approval is setup, probably need to setup at least 2 stages, where Vice Principal looks at it, then Principal approves.
     case 0:
       $approval_code_meaning = "Reject";
       break;
