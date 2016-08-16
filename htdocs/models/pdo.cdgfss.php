@@ -10,6 +10,8 @@ class cdgfss_pdo extends PdoModel {
   
   private $initSelect = false;
   private $initSubmit = false;
+  
+  // the parent class has a constructor that creates a PDO object called $db.  accessed via $this->db
 
   public function __construct() {
     // moving object initialization to the query functions instead, when it is needed
@@ -87,6 +89,16 @@ class cdgfss_pdo extends PdoModel {
       default:
         return $this->myQueryAssoc($query);
     }
+  }
+  
+  public function getSubmitPdo() {
+    // Primarily used for INSERT queries, but technically can be used for SELECT also (but not recommended, because SELECT are easily re-used).
+    
+    // this function returns a PDO object so queries can be executed directly.
+    // This seems to be cleaner than trying to pass INSERT data into this object.
+    // first use: submit.php
+    $this->initSubmit();
+    return $this->db;
   }
   
   public function columns_AllActivities_AllStudents() {

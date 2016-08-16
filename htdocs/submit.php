@@ -1,46 +1,20 @@
 <html>
 <body>
 <?php
-// This file really should be using the pdo.cdgfss.php class instead of creating its own connections, but this file was made before the
-// class was designed, so refactoring can be done later if necessary -- 15YS - 29062016
-
-$dbname = 'activity_prototype';
-$user = 'submit';
-$password = 'bKKZbbL2HDNErZtq';
-$dsn = "mysql:dbname=$dbname;host=localhost;charset=utf8";
+require_once 'models/pdo.php';
+require_once 'models/pdo.cdgfss.php';
+$cdgfssDB = new cdgfss_pdo();
 
 require_once 'submit_mail.php';
 $cdgfssEmail = new cdgfss_mail();
 $email = 't15ys@school.cdgfss.edu.hk';
 $testEmail = 't15ys@school.cdgfss.edu.hk'; // Comment this variable to disable test email
 
-function e($arg_1) {
-   echo(htmlentities($arg_1));
-}
-
-/* check connection */
-try {
-  $pdo = new PDO($dsn, $user, $password);
-} catch (PDOException $e) {
-  e(sprintf("Connection failed: %s\n", $e->getMessage()));
-  exit();
-}
-
-function myQuery($pdo, $query, $msg = null) {
-  try {
-    $count = $pdo->exec($query);
-    echo "$count rows affected.<br>";
-    if (isset($msg)) {
-      echo "$msg<br>";
-    }
-  } catch (PDOException $e){
-    echo "Error: " . $e->getMessage();
-  }
-}
+// The pdo object here pulls a pdo object from the cdgfssDB class, so any changes to login credentials and initialization will also take effect
+$pdo = $cdgfssDB->getSubmitPdo();
 
 // Extremely primitive and basic validation.  It only checks to see if the fields are set.
 // DB Queries are all Prepared statements so SQL injection does not need to be checked with data.
-
 
 // [VALIDATION]
 if (isset($_POST['activity']['teacher']) &&
@@ -62,7 +36,6 @@ if (isset($_POST['activity']['teacher']) &&
   if ($_POST['activity']['name_english'] != "") {
     $query = "INSERT INTO `activity_prototype`.`activity` (`teacher`, `unit`, `name_english`, `name_chinese`, `date`) VALUES (:at, :au, :ane, :anc, :ad)";
     $stmt = $pdo->prepare($query);
-    // $stmt->setFetchMode($args);  // only if you need to change the FETCH mode.  Unnecessary for an INSERT
     $stmt->execute(array(':at' => $at, ':au' => $au, ':ane' => $ane, ':anc' => $anc, ':ad' => $ad));
     $count = $stmt->rowCount();
     // no SQL error checking.  If necessary, call $stmt->errorInfo() and check the returned array for errors.
