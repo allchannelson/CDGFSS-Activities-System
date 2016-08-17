@@ -37,11 +37,13 @@ $pdoObj = new cdgfss_pdo();
 $activityStudentHeading = $pdoObj->columns_Activity_AllStudents();
 $activityStudents = $pdoObj->listActivity_AllStudents($activity_id);
 ?>
-<input type="button" value="Test" onclick="addColumn()"/>
+<label for="awardName">Name of Award: </label><input id="awardName" type="text" />
+<input type="button" value="Add" onclick="addColumn()"/>
 <script type="text/javascript">
   function addColumn() {
-    $("#studentTable tr:first").append("<td>Title</td>");
-    $("#studentTable tr:gt(0)").append(function (){return("<td>" + this.childNodes[1].innerHTML + "</td>")});
+    $("#studentTable tr:first").append("<td>"+ $("#awardName").val() +"</td>");
+    $("#studentTable tr:gt(0)").append(function (){return("<td>" + $(this).children("td:first").html() + "</td>")});
+    // $("#studentTable tr:first").children("td:first")
   }
   
 </script>
