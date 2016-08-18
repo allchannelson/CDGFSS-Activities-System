@@ -15,6 +15,15 @@
       background-color: #DDD;
     }
     
+    #errorMsg {
+      color: red;
+      display: none;
+    }
+    
+    .black {
+      color: black;
+    }
+    
   </style>
 </head>
 <body>
@@ -38,16 +47,36 @@ $activityStudentHeading = $pdoObj->columns_Activity_AllStudents();
 $activityStudents = $pdoObj->listActivity_AllStudents($activity_id);
 ?>
 <label for="awardName">Name of Award: </label><input id="awardName" type="text" />
-<input type="button" value="Add" onclick="addColumn()"/>
+<input type="button" value="Add" onclick="addColumn()"/> <span id="errorMsg"></span><br>
+<input type="reset" onclick="resetForm()" />
 <script type="text/javascript">
   function addColumn() {
-    $("#studentTable tr:first").append("<td>"+ $("#awardName").val() +"</td>");
-    $("#studentTable tr:gt(0)").append(function (){return("<td>" + $(this).children("td:first").html() + "</td>")});
-    // $("#studentTable tr:first").children("td:first")
+    var myAwardName = $("#awardName").val();
+    if (myAwardName != "") {
+      $("#errorMsg").css('display', 'none');
+      $("#studentTable tr:first").append("<td>"+ myAwardName +"</td>");
+      $("#studentTable tr:gt(0)").append(function (){return("<td>" + $(this).children("td:first").html() + "</td>")});
+      // for debugging in the console to access the TR DOM jQuery object
+      // $("#studentTable tr:first").children("td:first")
+      $("#awardName").val('');
+    } else {
+      errorSpan = $("#errorMsg");
+      errorSpan.css('display', 'initial');
+      errorSpan.html('[<span class="black">Name of Award</span>] cannot be blank.');
+    }
+  }
+  function resetForm() {
+    // probably just best to reload the page to clean everything up.  I can't quickly and safely reverse the HTML table appends.
+    location.reload();
   }
   
 </script>
 <hr>
+<form name="form" onsubmit="return validateForm()" action="addawards_submit.php" method="post">
+<script type="test/javascript">
+  function validateForm() {
+  }
+  </script>
 <table id="studentTable">
   <tr>
     <?php foreach ($activityStudentHeading as $field): ?>
@@ -62,5 +91,6 @@ $activityStudents = $pdoObj->listActivity_AllStudents($activity_id);
   </tr>
   <?php endforeach ?>
 </table>
+</form>
 </body>
 </html>
