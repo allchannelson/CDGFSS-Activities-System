@@ -179,6 +179,10 @@ class cdgfss_pdo extends PdoModel {
     return array("Student Number","Name (English)","Name (Chinese)","Form Class Number","Gender");
   }
 
+  public function columns_ActivityAndAwards_AllStudents() {
+    return array("Activity-Student Key","Student Number","Name (English)","Name (Chinese)","Form Class Number","Gender");
+  }
+
   public function listActivity_AllStudents($activity_index, $args = PDO::FETCH_ASSOC) {
     $this->initSelect();
     $query = "
@@ -189,6 +193,21 @@ class cdgfss_pdo extends PdoModel {
      WHERE (`syi`.`student_index`, `syi`.`enrollment_year`) IN (
            SELECT `student_index`, `student_enrollment_year`
              FROM `activity_student`
+            WHERE `activity_index` = :activity_index)
+  ORDER BY `syi`.`form` asc, `syi`.`class` asc, `syi`.`class_number` asc";
+    return $this->prepareQuery($query, array(':activity_index' => $activity_index), $args);
+  }
+  
+  public function listActivityAndAwards_AllStudents($activity_index, $args = PDO::FETCH_ASSOC) {
+    $this->initSelect();
+    $query = "
+    SELECT concat_ws(',',:activity_index,`syi`.`student_index`,`syi`.`enrollment_year`) as as_key, `s`.`student_number`, `s`.`name_english`, `s`.`name_chinese`, concat(`syi`.`form`, `syi`.`class`, `syi`.`class_number`) as 'formclassnumber', `s`.`gender`
+      FROM `student_yearly_info` `syi`
+      JOIN `student` `s`
+        ON `s`.`student_index` = `syi`.`student_index`
+     WHERE (`syi`.`student_index`, `syi`.`enrollment_year`) IN (
+           SELECT `student_index`, `student_enrollment_year`
+             FROM `activity_student` `as`
             WHERE `activity_index` = :activity_index)
   ORDER BY `syi`.`form` asc, `syi`.`class` asc, `syi`.`class_number` asc";
     return $this->prepareQuery($query, array(':activity_index' => $activity_index), $args);

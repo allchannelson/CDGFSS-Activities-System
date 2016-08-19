@@ -54,8 +54,11 @@ if (isset($_POST['checkboxArray'])) {
   $stmt = $pdo->prepare($query);
   
   // Since each student is a separate query execution, this takes a bit more than 30 seconds to finish if all of 2015's 903 students are added to an activity.
-  // Will setup a progress bar to indicate this:
+  // Can probably setup a progress bar to indicate this:
   // http://www.htmlgoodies.com/beyond/php/show-progress-report-for-long-running-php-scripts.html
+  // SE topic: http://stackoverflow.com/questions/12574691/pdo-lastinsertid-for-multiple-insert-query
+  // See Peyman's answer.
+  // Using a combination of AUTO-INC lock behavior and details of AUTO_INCREMENT may improve INSERT time, but that's an optimization, not required.
   
   foreach($_POST['checkboxArray'] as $thisCheckbox) {
     $studentFields = explode(",",$thisCheckbox);
