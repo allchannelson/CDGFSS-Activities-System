@@ -34,7 +34,8 @@
       var d=document.forms["form"]["activity[name_chinese]"];
       var e=document.forms["form"]["activity[date]"];
       var f=document.forms["form"]["datepicker"];
-      var g=document.forms["form"]["email"];
+      var g=document.forms["form"]["activity[email]"];
+      // make sure the object reference here is valid and works
       
       /* server side validation also needs to be added in submit.php 
          see [VALIDATION]
@@ -507,7 +508,7 @@
 </div>
 <div class="clearLeft">
   <div class="option">Search --</div>
-  <div class="option"><input type="text" name="studentSearchInput" id="studentSearchInput" oninput="studentSearch();" onchange="studentSearch();" onpropertychange="studentSearch();" /></div>
+  <div class="option"><input type="text" name="studentSearchInput" id="studentSearchInput" oninput="studentSearch();" onchange="studentSearch();" onpropertychange="studentSearch();" /> <input type="button" value="Enter" onclick="enterKeyPressed();" /></div>
 </div>
 <div class="clearLeft">You can search by Form, Class, or Name.</div>
 <div class="clearLeft" id="advblock">
@@ -533,11 +534,16 @@
 <script type="text/javascript">
   $('input#studentSearchInput').keydown(function(e) {
     if(e.keyCode == 13) { // enter key was pressed
-      studentSearchEnter();
-      studentTotal();
+      enterKeyPressed();
       return false; // prevent execution of rest of the script + event propagation / event bubbling + prevent default behaviour
     }
   });
+  
+  function enterKeyPressed() {
+    studentSearchEnter();
+    studentTotal();
+    $("#studentSearchInput").focus();
+  }
   
   function removeStudentListClass(inputClass) {
     var studentArray = document.querySelectorAll("[data-student_form_class]");
