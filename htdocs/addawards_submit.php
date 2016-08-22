@@ -17,7 +17,6 @@
 // from report outputs, assuming somewhere around 20,000 IDs used per year (2015-16 had ~7800, very generous estimate)
 // it will take about 100,000 years to exhaust all the IDs (INT(10) is used as primary key), assuming the IDs are not consumed by a loop bug
 
-// First Step is to probably grab 
 ?>
 </body>
 </html>
