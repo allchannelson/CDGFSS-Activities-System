@@ -32,7 +32,7 @@
     .awardTitle {
     }
     
-    .awardCheckbox {
+    .awardCheckbox, .awardRadio {
       text-align: center;
     }
     
@@ -62,7 +62,7 @@ $pdoObj = new cdgfss_pdo();
 $activityStudentHeading = $pdoObj->columns_ActivityAndAwards_AllStudents();
 $activityStudents = $pdoObj->listActivityAndAwards_AllStudents($activity_id);
 ?>
-<label for="awardName">Name of Award: </label><input id="awardName" type="text" />
+<label for="awardName">Name of Award: </label><input id="awardName" type="text" maxlength=100 />
 <input type="button" value="Add" onclick="addColumn()"/> <span id="errorMsg"></span><br>
 <input type="reset" onclick="resetForm()" />
 <script type="text/javascript">
@@ -77,7 +77,7 @@ $activityStudents = $pdoObj->listActivityAndAwards_AllStudents($activity_id);
     if (myAwardName != "") {
       $("#errorMsg").css('display', 'none');
       $("#studentTable tr:first").append("<td class='awardTitle'>" + myAwardName + "</td>");
-      $("#studentTable tr:gt(0)").append(function (){return("<td class='awardCheckbox'><input type='checkbox' name='awards[" + window.gAwardCount +"][]' value='" + $(this).children("td:first").html() + "' /></td>")});
+      $("#studentTable tr:gt(0)").append(function (){return("<td class='awardRadio'><input type='radio' name='awards[" + $(this).children("td:first").html() +"]' value='" + myAwardName + "' /></td>")});
       $("#hiddenData").append("<input type='hidden' name='awardsName[" + window.gAwardCount +"]' value='" + myAwardName + "' />");
       // for debugging in the console to access the TR DOM jQuery object
       // $("#studentTable tr:first").children("td:first")
@@ -85,7 +85,7 @@ $activityStudents = $pdoObj->listActivityAndAwards_AllStudents($activity_id);
       // This method of populating data is exploitable, since the HTML table can be modified on the browser.
       // Prepared PDO statements prevent SQL injections, so bad data can go in if someone decides to mess with it.
       
-      $("#awardsName").val('');  // clears the input field since we probably don't want multiples of the same award
+      $("#awardName").val('');  // clears the input field since we probably don't want multiples of the same award
     } else {
       errorSpan = $("#errorMsg");
       errorSpan.css('display', 'initial');
@@ -99,7 +99,7 @@ $activityStudents = $pdoObj->listActivityAndAwards_AllStudents($activity_id);
   
 </script>
 <hr>
-<form name="form" onsubmit="return validateForm()" action="addawards_submit.php" method="post">
+<form name="form" action="addawards_submit.php" method="post">
 <p><input type="submit" id="submit" disabled /></p>
 <script type="test/javascript">
   function validateForm() {
