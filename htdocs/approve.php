@@ -8,7 +8,7 @@
     exit("Missing or Invalid Activity ID");
   }
 ?>
-<script   src="https://code.jquery.com/jquery-3.0.0.min.js"   integrity="sha256-JmvOoLtYsmqlsWxa7mDSLMwa6dZ9rrIdtrrVYRnDRH0="   crossorigin="anonymous"></script>
+<?php require('common/jQueryInclude.php');?>
 
 <style type="text/css">
   table, td, th {
